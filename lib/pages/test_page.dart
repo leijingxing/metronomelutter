@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class CustomGridView extends StatelessWidget {
-  final data = List.generate(128, (i) => Color(0xFFFF00FF - 2 * i));
+  final List<Color> data =
+      List<Color>.generate(128, (i) => Color(0xFFFF00FF - 2 * i));
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +26,14 @@ class CustomGridView extends StatelessWidget {
         child: Text(
           colorString(color),
           style: TextStyle(
-              color: Colors.white, shadows: [Shadow(color: Colors.black, offset: Offset(.5, .5), blurRadius: 2)]),
+            color: Colors.white,
+            shadows: const [
+              Shadow(color: Colors.black, offset: Offset(.5, .5), blurRadius: 2),
+            ],
+          ),
         ),
       );
 
-  String colorString(Color color) => "#${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}";
+  String colorString(Color color) =>
+      "#${color.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}";
 }

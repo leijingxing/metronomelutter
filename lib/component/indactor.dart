@@ -4,11 +4,11 @@ class IndactorRow extends StatelessWidget {
   final int nowStep;
   final int stepLength;
 
-  IndactorRow(this.nowStep, this.stepLength);
+  const IndactorRow(this.nowStep, this.stepLength, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List steps = List(stepLength);
+    final List<int> steps = List<int>.generate(stepLength, (index) => index);
     // 不满 4 个改用 Row 渲染
     if (stepLength < 4) {
       return Container(
@@ -24,9 +24,9 @@ class IndactorRow extends StatelessWidget {
                       height: entry.key == 0 ? 35.0 : 25.0,
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(100),
-                          color: this.nowStep > -1 && (this.nowStep % steps.length) == entry.key
-                              ? Theme.of(context).accentColor
-                              : Colors.grey[300]),
+                          color: nowStep > -1 && (nowStep % steps.length) == entry.key
+                              ? Theme.of(context).colorScheme.secondary
+                              : Colors.grey.shade300),
                     ))
                 .toList()),
       );
@@ -38,13 +38,13 @@ class IndactorRow extends StatelessWidget {
       child: GridView.builder(
         itemCount: steps.length,
         shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: steps.length > 4 ? steps.length : 4,
           mainAxisSpacing: 0.0,
           childAspectRatio: 1.0,
         ),
-        padding: EdgeInsets.symmetric(vertical: 0),
+        padding: const EdgeInsets.symmetric(vertical: 0),
         itemBuilder: (BuildContext context, int index) {
           return Center(
             child: Container(
@@ -53,9 +53,9 @@ class IndactorRow extends StatelessWidget {
               height: index == 0 ? 35.0 : 25.0,
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(100),
-                  color: this.nowStep > -1 && (this.nowStep % steps.length) == index
-                      ? Theme.of(context).accentColor
-                      : Colors.grey[300]),
+                  color: nowStep > -1 && (nowStep % steps.length) == index
+                      ? Theme.of(context).colorScheme.secondary
+                      : Colors.grey.shade300),
             ),
           );
         },

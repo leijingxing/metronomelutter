@@ -14,11 +14,11 @@ class SyStepper extends StatelessWidget {
   final int step;
   final double iconSize;
   final double textSize;
-  final StepperChangeCallback onChange;
-  final Function manualControl;
+  final StepperChangeCallback? onChange;
+  final void Function(StepperEventType type, int nowValue)? manualControl;
 
   const SyStepper({
-    Key key,
+    super.key,
     this.value = 1,
     this.onChange,
     this.min = 1,
@@ -27,15 +27,20 @@ class SyStepper extends StatelessWidget {
     this.iconSize = 24.0,
     this.textSize = 24.0,
     this.manualControl,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    int value = this.value;
-    ThemeData theme = Theme.of(context);
+    final int value = this.value;
+    final ThemeData theme = Theme.of(context);
+    final StepperChangeCallback? onChange = this.onChange;
+    final void Function(StepperEventType type, int nowValue)? manualControl =
+        this.manualControl;
     final iconPadding = const EdgeInsets.all(4.0);
-    bool minusBtnDisabled = value <= this.min || value - this.step < this.min || this.onChange == null;
-    bool addBtnDisabled = value >= this.max || value + this.step > this.max || this.onChange == null;
+    final bool minusBtnDisabled = value <= this.min || value - this.step < this.min || onChange == null;
+    final bool addBtnDisabled = value >= this.max || value + this.step > this.max || onChange == null;
+    final Color activeColor =
+        theme.textTheme.labelLarge?.color ?? theme.colorScheme.onSurface;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
@@ -45,14 +50,14 @@ class SyStepper extends StatelessWidget {
             child: Icon(
               Icons.remove,
               size: this.iconSize,
-              color: minusBtnDisabled ? theme.disabledColor : theme.textTheme.button.color,
+              color: minusBtnDisabled ? theme.disabledColor : activeColor,
             ),
           ),
           onTap: minusBtnDisabled
               ? null
-              : this.manualControl != null
+              : manualControl != null
                   ? () {
-                      this.manualControl(
+                      manualControl(
                         StepperEventType.decrease,
                         value,
                       );
@@ -60,7 +65,7 @@ class SyStepper extends StatelessWidget {
                   : () {
                       int newVal = value - this.step;
 
-                      this.onChange(newVal);
+                      onChange?.call(newVal);
                     },
         ),
         Padding(
@@ -83,14 +88,14 @@ class SyStepper extends StatelessWidget {
             child: Icon(
               Icons.add,
               size: this.iconSize,
-              color: addBtnDisabled ? theme.disabledColor : theme.textTheme.button.color,
+              color: addBtnDisabled ? theme.disabledColor : activeColor,
             ),
           ),
           onTap: addBtnDisabled
               ? null
-              : this.manualControl != null
+              : manualControl != null
                   ? () {
-                      this.manualControl(
+                      manualControl(
                         StepperEventType.increase,
                         value,
                       );
@@ -98,7 +103,7 @@ class SyStepper extends StatelessWidget {
                   : () {
                       int newVal = value + this.step;
 
-                      this.onChange(newVal);
+                      onChange?.call(newVal);
                     },
         ),
       ],

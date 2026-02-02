@@ -4,7 +4,7 @@ class TimeSignature extends StatelessWidget {
   final int beat;
   final int note;
 
-  TimeSignature(this.beat, this.note);
+  const TimeSignature(this.beat, this.note, {super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -73,7 +73,7 @@ mixin _$MetronomeStore on _MetronomeStore, Store {
       ActionController(name: '_MetronomeStore');
 
   @override
-  void setSoundType(dynamic payload) {
+  void setSoundType(int payload) {
     final _$actionInfo = _$_MetronomeStoreActionController.startAction(
         name: '_MetronomeStore.setSoundType');
     try {
@@ -84,7 +84,7 @@ mixin _$MetronomeStore on _MetronomeStore, Store {
   }
 
   @override
-  void setBeat(dynamic payload) {
+  void setBeat(int payload) {
     final _$actionInfo = _$_MetronomeStoreActionController.startAction(
         name: '_MetronomeStore.setBeat');
     try {

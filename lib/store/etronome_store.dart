@@ -26,13 +26,13 @@ abstract class _MetronomeStore with Store {
   int note = Config.NOTE_DEFAULT;
 
   @action
-  void setSoundType(payload) {
+  void setSoundType(int payload) {
     soundType = payload;
     GlobalData.sp.putInt('soundType', payload);
   }
 
   @action
-  void setBeat(payload) {
+  void setBeat(int payload) {
     if (payload < Config.BEAT_MIN) {
       beat = Config.BEAT_MIN;
     } else if (payload > Config.BEAT_MAX) {

@@ -1,24 +1,40 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:metronomelutter/config/config.dart';
 import 'package:metronomelutter/utils/global_function.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
-class SliderRow extends StatelessWidget {
+class SliderRow extends StatefulWidget {
   final int bpm;
-  final Function setBpmHandler;
+  final ValueChanged<int> setBpmHandler;
 
-  SliderRow(this.bpm, this.setBpmHandler, {Key key}) : super(key: key);
+  const SliderRow(this.bpm, this.setBpmHandler, {super.key});
 
-  final textController = new TextEditingController();
+  @override
+  State<SliderRow> createState() => _SliderRowState();
+}
 
-  handleSliderChange(double value) {
-    setBpmHandler(value.toInt());
+class _SliderRowState extends State<SliderRow> {
+  late final TextEditingController _textController;
+
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController();
   }
 
-  handleSetBPMConfirm(text) {
-    var bpm;
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  void _handleSliderChange(double value) {
+    widget.setBpmHandler(value.toInt());
+  }
+
+  void _handleSetBpmConfirm(String text) {
+    double? bpm;
     try {
       bpm = double.parse(text);
     } catch (e) {
@@ -26,9 +42,10 @@ class SliderRow extends StatelessWidget {
     }
     if (bpm != null) {
       if (bpm < Config.BPM_MIN || bpm > Config.BPM_MAX) {
-        return $warn('BPM 支持 ${Config.BPM_MIN} -  ${Config.BPM_MAX}');
+        $warn('BPM 支持 ${Config.BPM_MIN} -  ${Config.BPM_MAX}');
+        return;
       }
-      handleSliderChange(bpm);
+      _handleSliderChange(bpm);
     }
   }
 
@@ -39,57 +56,62 @@ class SliderRow extends StatelessWidget {
       children: [
         GestureDetector(
           onTap: () {
+            _textController.text = widget.bpm.toString();
             $confirm(
               '',
               context,
               title: 'BPM',
               customBody: TextField(
-                controller: textController,
+                controller: _textController,
                 keyboardType: TextInputType.number,
                 // 如果你想只输入数字,需要加上这个
                 inputFormatters: <TextInputFormatter>[
                   FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*')),
                 ],
                 decoration: InputDecoration(
-                  hintText: this.bpm.toString(),
+                  hintText: widget.bpm.toString(),
                   filled: true,
-                  // fillColor: Colors.grey.shade50,
                 ),
                 onSubmitted: (text) {
                   // todo 失败了不关闭弹窗
                   Navigator.of(context).pop();
-                  handleSetBPMConfirm(text);
+                  _handleSetBpmConfirm(text);
                 },
               ),
-              btnOkOnPress: () => handleSetBPMConfirm(textController.text),
+              btnOkOnPress: () => _handleSetBpmConfirm(_textController.text),
             );
           },
           child: SleekCircularSlider(
             min: Config.BPM_MIN.toDouble(),
             max: Config.BPM_MAX.toDouble(),
-            initialValue: this.bpm.toDouble(),
+            initialValue: widget.bpm.toDouble(),
             appearance: CircularSliderAppearance(
-                // animationEnabled: false,
-                size: 270,
-                infoProperties: InfoProperties(
-                  modifier: (percentage) => percentage.toInt().toString(),
-                  bottomLabelText: 'BPM',
-                  mainLabelStyle: TextStyle(
-                    color: Theme.of(context).textTheme.headline6.color,
-                    fontSize: 52,
-                  ),
+              // animationEnabled: false,
+              size: 270,
+              infoProperties: InfoProperties(
+                modifier: (percentage) => percentage.toInt().toString(),
+                bottomLabelText: 'BPM',
+                mainLabelStyle: TextStyle(
+                  color: Theme.of(context).textTheme.headlineSmall?.color ??
+                      Theme.of(context).colorScheme.onSurface,
+                  fontSize: 52,
                 ),
-                customColors: CustomSliderColors(hideShadow: true, progressBarColors: [
+              ),
+              customColors: CustomSliderColors(
+                hideShadow: true,
+                progressBarColors: const [
                   Color.fromARGB(255, 62, 164, 255),
                   Color.fromARGB(255, 102, 204, 255),
                   Color.fromARGB(255, 142, 244, 255),
-                ])),
+                ],
+              ),
+            ),
             // onChangeStart: (double value) {},
             // onChangeEnd: (double value) {},
             // onChange: (double value) {},
-            onChange: handleSliderChange,
-            // onChangeStart: handleSliderChange,
-            // onChangeEnd: handleSliderChange,
+            onChange: _handleSliderChange,
+            // onChangeStart: _handleSliderChange,
+            // onChangeEnd: _handleSliderChange,
           ),
         ),
       ],

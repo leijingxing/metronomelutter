@@ -3,13 +3,15 @@ import 'package:metronomelutter/component/about_me.dart';
 import 'package:metronomelutter/component/change_sound.dart';
 import 'package:metronomelutter/store/index.dart';
 import 'package:metronomelutter/utils/global_function.dart';
-import 'package:package_info/package_info.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class Setting extends StatelessWidget {
+  const Setting({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('设置')),
+      appBar: AppBar(title: const Text('设置')),
       body: Container(
         child: Column(
           children: [
@@ -36,15 +38,18 @@ class Setting extends StatelessWidget {
               '关于',
               context,
               onTap: () async {
-                PackageInfo packageInfo = await PackageInfo.fromPlatform();
+                final PackageInfo packageInfo = await PackageInfo.fromPlatform();
 
-                String appName = packageInfo.appName;
-                String packageName = packageInfo.packageName;
-                String version = packageInfo.version;
-                String buildNumber = packageInfo.buildNumber;
+                final String appName = packageInfo.appName;
+                final String packageName = packageInfo.packageName;
+                final String version = packageInfo.version;
+                final String buildNumber = packageInfo.buildNumber;
                 print('正在检查版本: ---$appName---$packageName---$version---$buildNumber---');
 
-                showDialog(context: context, builder: (ctx) => AboutMe(version: 'v$version+$buildNumber'));
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AboutMe(version: 'v$version+$buildNumber'),
+                );
 
                 // $confirm(
                 //   '基于 flutter 技术打造的极简全平台节拍器', context,
@@ -58,18 +63,18 @@ class Setting extends StatelessWidget {
     );
   }
 
-  buildInkWellSettingItem(
+  Widget buildInkWellSettingItem(
     String text,
     BuildContext context, {
-    final Function onTap,
+    final VoidCallback? onTap,
   }) {
     return InkWell(
       child: Container(
         alignment: Alignment.centerLeft,
-        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
         child: Text(
           text,
-          style: Theme.of(context).textTheme.button,
+          style: Theme.of(context).textTheme.titleMedium,
         ),
       ),
       onTap: onTap,

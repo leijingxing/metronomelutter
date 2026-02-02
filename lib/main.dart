@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:metronomelutter/global_data.dart';
@@ -15,46 +14,54 @@ void main() async {
   initSoundType();
   initBpm();
 
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: '节拍器',
       // 右上角不显示 debug 横幅
-      // debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.light,
-        accentColor: Colors.blue,
-        inputDecorationTheme: Theme.of(context).inputDecorationTheme.copyWith(
-              fillColor: Colors.grey.shade50,
-            ),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        useMaterial3: true,
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.grey.shade50,
+        ),
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
-        accentColor: Color.fromRGBO(134, 165, 255, 1),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromRGBO(134, 165, 255, 1),
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
       ),
       themeMode: ThemeMode.system,
-      home: MyHomePage(),
+      home: const MyHomePage(),
       builder: EasyLoading.init(),
       // home: example01,
     );
   }
 }
 
-initSoundType() {
-  int soundType = GlobalData.sp.getInt('soundType');
+void initSoundType() {
+  final int? soundType = GlobalData.sp.getInt('soundType');
   if (soundType != null) {
     print('get sound type $soundType');
     appStore.setSoundType(soundType);
   }
 }
 
-initBpm() {
-  int spRes = GlobalData.sp.getInt('bpm');
+void initBpm() {
+  final int? spRes = GlobalData.sp.getInt('bpm');
   if (spRes != null) {
     print('get bpm $spRes');
     appStore.setBpm(spRes);

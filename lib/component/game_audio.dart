@@ -1,57 +1,54 @@
-import 'package:audioplayers/audio_cache.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 class GameAudio {
-  List<AudioCache> audioCaches = [];
-
-  List files;
-  int maxPlayers;
+  final List<AudioPlayer> _players = [];
+  final List<String>? files;
+  final int maxPlayers;
 
   GameAudio(this.maxPlayers, {this.files});
 
-  Future init() async {
+  Future<void> init() async {
     for (int i = 0; i < maxPlayers; i++) {
-      audioCaches.add(await _createNewAudioCache());
+      final player = AudioPlayer();
+      await player.setPlayerMode(PlayerMode.lowLatency);
+      await player.setReleaseMode(ReleaseMode.stop);
+      _players.add(player);
     }
   }
 
-  Future play(String file, {volume = 1.0}) async {
-    for (int i = 0; i < maxPlayers; i++) {
-      if (audioCaches[i].fixedPlayer.state == AudioPlayerState.PLAYING) {
-        audioCaches[i].fixedPlayer.stop();
+  Future<void> play(String file, {double volume = 1.0}) async {
+    for (final player in _players) {
+      if (player.state == PlayerState.playing) {
+        await player.stop();
       }
-      return audioCaches[i].play(file, volume: volume, mode: PlayerMode.LOW_LATENCY);
+      await player.play(
+        AssetSource(file),
+        volume: volume,
+        mode: PlayerMode.lowLatency,
+      );
+      return;
     }
   }
 
-  Future stop() async {
-    for (int i = 0; i < maxPlayers; i++) {
-      // if (audioCaches[i].fixedPlayer.state == AudioPlayerState.PLAYING) {
-      audioCaches[i].fixedPlayer.stop();
-      // }
+  Future<void> stop() async {
+    for (final player in _players) {
+      await player.stop();
     }
   }
 
-  Future _createNewAudioCache() async {
-    final AudioCache audioCache = AudioCache(
-        // prefix: 'audio/',
-        fixedPlayer: AudioPlayer());
-    await audioCache.fixedPlayer.setReleaseMode(ReleaseMode.STOP);
-    // await audioCache.loadAll(files);
-    return audioCache;
+  Future<void> dispose() async {
+    for (final player in _players) {
+      await player.dispose();
+    }
   }
 
   /// Clears all the audios in the cache
   void clearAll() {
-    audioCaches.forEach((audioCache) {
-      audioCache.clearCache();
-    });
+    // AudioCache moved to global cache in audioplayers 6.x; nothing to clear here.
   }
 
   /// Disables audio related logs
   void disableLog() {
-    audioCaches.forEach((audioCache) {
-      audioCache.disableLog();
-    });
+    // No-op: logging control is handled by the audioplayers package internally.
   }
 }

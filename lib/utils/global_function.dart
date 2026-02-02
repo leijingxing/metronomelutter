@@ -6,12 +6,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 // 警告框
 void $warn(
   String text, {
-  gravity: ToastGravity.CENTER,
-  toastLength: Toast.LENGTH_SHORT,
+  ToastGravity gravity = ToastGravity.CENTER,
+  Toast toastLength = Toast.LENGTH_SHORT,
 }) {
   Fluttertoast.cancel();
 
@@ -20,7 +21,7 @@ void $warn(
     toastLength: toastLength,
     gravity: gravity,
     timeInSecForIosWeb: 1,
-    backgroundColor: Color(0xcc000000),
+    backgroundColor: const Color(0xcc000000),
     textColor: Colors.white,
     fontSize: 16.0,
   );
@@ -30,12 +31,12 @@ void $warn(
 Future<void> $confirm(
   String text,
   BuildContext context, {
-  final Function btnOkOnPress,
-  final Function btnCancelOnPress,
-  title = '提示',
-  confirmText = '确定',
-  cancelText = '取消',
-  Widget customBody,
+  final VoidCallback? btnOkOnPress,
+  final VoidCallback? btnCancelOnPress,
+  String title = '提示',
+  String confirmText = '确定',
+  String cancelText = '取消',
+  Widget? customBody,
 }) async {
   return showDialog<void>(
     context: context,
@@ -58,9 +59,7 @@ Future<void> $confirm(
             onPressed: () {
               Navigator.of(context).pop();
 
-              if (btnOkOnPress != null) {
-                btnOkOnPress();
-              }
+              btnOkOnPress?.call();
             },
           ),
           TextButton(
@@ -72,9 +71,7 @@ Future<void> $confirm(
             ),
             onPressed: () {
               Navigator.of(context).pop();
-              if (btnCancelOnPress != null) {
-                btnCancelOnPress();
-              }
+              btnCancelOnPress?.call();
             },
           ),
         ],
@@ -86,17 +83,17 @@ Future<void> $confirm(
 // 复制到剪切板
 Future<String> copyToClipboard(
   String text, {
-  gravity: ToastGravity.CENTER,
+  ToastGravity gravity = ToastGravity.CENTER,
 }) async {
   //复制
-  Clipboard.setData(ClipboardData(text: text));
+  await Clipboard.setData(ClipboardData(text: text));
 
   var res = '';
   try {
     //读取剪切板
-    var textFu = await Clipboard.getData(Clipboard.kTextPlain);
-    if (text == textFu.text) {
-      res = textFu.text;
+    final textFu = await Clipboard.getData(Clipboard.kTextPlain);
+    if (text == textFu?.text) {
+      res = textFu?.text ?? '';
       // 个人中心的复制会真好的黑色的邀请重合,这里让弹窗放到上面去
       $warn('复制成功', gravity: gravity);
     } else {
@@ -113,13 +110,15 @@ Future<String> copyToClipboard(
 }
 
 // 自动超时关闭
-Timer _loadingClosedTimer;
+Timer? _loadingClosedTimer;
 
-$loading(context,
-    {title = '加载中',
+void $loading(
+  BuildContext context, {
+  String title = '加载中',
 
-    /// 可能会有打开后没触发关闭的地方,默认开启超时关闭防止页面 loading 停留过久
-    closedTimeout = 3}) {
+  /// 可能会有打开后没触发关闭的地方,默认开启超时关闭防止页面 loading 停留过久
+  int closedTimeout = 3,
+}) {
   // 设置样式
   EasyLoading.instance
     ..indicatorType = EasyLoadingIndicatorType.ring;
@@ -127,37 +126,43 @@ $loading(context,
   EasyLoading.show(status: title);
 
 //  超过预期时间仍未关闭 loading
-  if (_loadingClosedTimer != null) {
-    _loadingClosedTimer.cancel();
-  }
-  _loadingClosedTimer = new Timer(new Duration(seconds: closedTimeout), () {
+  _loadingClosedTimer?.cancel();
+  _loadingClosedTimer = Timer(Duration(seconds: closedTimeout), () {
     $loadingHide();
   });
 }
 
-$loadingHide() {
+void $loadingHide() {
   EasyLoading.dismiss();
 }
 
 /// 和 js 的 setTimeout 一样
-Future setTimeout(cb, int time) async {
+Future<Timer> setTimeout(VoidCallback cb, int time) async {
   return Timer(Duration(milliseconds: time), cb);
 }
 
 /// 根据 value 找到 key
-findKeyByValue(Map map, dynamic val) {
-  return map.keys.firstWhere((k) => map[k] == val, orElse: () => null);
+T? findKeyByValue<T>(Map<T, dynamic> map, dynamic val) {
+  for (final entry in map.entries) {
+    if (entry.value == val) {
+      return entry.key;
+    }
+  }
+  return null;
 }
 
-launchURL(url) async {
-  if (await canLaunch(url)) {
-    return launch(url);
+Future<void> launchURL(String url) async {
+  if (await canLaunchUrlString(url)) {
+    await launchUrlString(
+      url,
+      mode: LaunchMode.externalApplication,
+    );
   } else {
     throw '无法拉起: $url';
   }
 }
 
-buildNum({num = 200}) {
+Widget buildNum({int num = 200}) {
   return ListView.builder(
 //    shrinkWrap: true, //解决无线高度问题
 //    physics: new NeverScrollableScrollPhysics(), //禁用滑动事件
@@ -165,20 +170,18 @@ buildNum({num = 200}) {
     itemBuilder: (context, index) {
       return Container(
         alignment: Alignment.center,
-        color: Colors.teal[100 * (index % 9)],
+        color: Colors.teal[100 * (index % 9)] ?? Colors.teal,
         child: Text('item2 $index'),
       );
     },
   );
 }
 
-get isRelease {
-  return foundation.kReleaseMode;
-}
+bool get isRelease => foundation.kReleaseMode;
 
 // 补全头部 https:// 前缀
 // 如果修改请运行 单元测试 `unit_test.dart - '填充 url https://'` 验证正确性
-completeUrlHttpsPrefix(urlOrigin) {
+String completeUrlHttpsPrefix(String urlOrigin) {
 //  print('原版 url: $urlOrigin');
 
   var url = urlOrigin;
