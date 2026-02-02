@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:metronomelutter/config/app_theme.dart';
+import 'package:metronomelutter/store/index.dart';
 
 class IndactorRow extends StatelessWidget {
   final int nowStep;
@@ -8,6 +10,12 @@ class IndactorRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme scheme = Theme.of(context).colorScheme;
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final AppTheme theme =
+        AppThemes.all[appStore.themeIndex % AppThemes.all.length];
+    final Color primary = theme.primary;
+    final Color accent = theme.accent;
     final List<int> steps = List<int>.generate(stepLength, (index) => index);
     // 不满 4 个改用 Row 渲染
     if (stepLength < 4) {
@@ -18,16 +26,49 @@ class IndactorRow extends StatelessWidget {
             children: steps
                 .asMap()
                 .entries
-                .map((entry) => Container(
-                      margin: EdgeInsets.all(25),
-                      width: entry.key == 0 ? 35.0 : 25.0,
-                      height: entry.key == 0 ? 35.0 : 25.0,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(100),
-                          color: nowStep > -1 && (nowStep % steps.length) == entry.key
-                              ? Theme.of(context).colorScheme.secondary
-                              : Colors.grey.shade300),
-                    ))
+                .map((entry) {
+                  final bool isActive =
+                      nowStep > -1 && (nowStep % steps.length) == entry.key;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 160),
+                    curve: Curves.easeOutCubic,
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    width: 36.0,
+                    height: 36.0,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      gradient: isActive
+                          ? LinearGradient(
+                              colors: [
+                                primary,
+                                accent,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                          : null,
+                      color: isActive
+                          ? null
+                          : (isDark
+                              ? scheme.onSurface.withOpacity(0.16)
+                              : scheme.onSurface.withOpacity(0.12)),
+                      boxShadow: isActive
+                          ? [
+                              BoxShadow(
+                                color: primary.withOpacity(0.35),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: AnimatedScale(
+                      duration: const Duration(milliseconds: 120),
+                      scale: isActive ? 1.05 : 0.95,
+                      child: const SizedBox.shrink(),
+                    ),
+                  );
+                })
                 .toList()),
       );
     }
@@ -46,16 +87,45 @@ class IndactorRow extends StatelessWidget {
         ),
         padding: const EdgeInsets.symmetric(vertical: 0),
         itemBuilder: (BuildContext context, int index) {
+          final bool isActive = nowStep > -1 && (nowStep % steps.length) == index;
           return Center(
-            child: Container(
-              // margin: EdgeInsets.all(25),
-              width: index == 0 ? 35.0 : 25.0,
-              height: index == 0 ? 35.0 : 25.0,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              curve: Curves.easeOutCubic,
+              width: 36.0,
+              height: 36.0,
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(100),
-                  color: nowStep > -1 && (nowStep % steps.length) == index
-                      ? Theme.of(context).colorScheme.secondary
-                      : Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(12),
+                gradient: isActive
+                    ? LinearGradient(
+                        colors: [
+                          primary,
+                          accent,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : null,
+                color: isActive
+                    ? null
+                    : (isDark
+                        ? scheme.onSurface.withOpacity(0.16)
+                        : scheme.onSurface.withOpacity(0.12)),
+                boxShadow: isActive
+                    ? [
+                        BoxShadow(
+                          color: primary.withOpacity(0.35),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: AnimatedScale(
+                duration: const Duration(milliseconds: 120),
+                scale: isActive ? 1.05 : 0.95,
+                child: const SizedBox.shrink(),
+              ),
             ),
           );
         },

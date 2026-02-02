@@ -69,6 +69,21 @@ mixin _$MetronomeStore on _MetronomeStore, Store {
     });
   }
 
+  final _$themeIndexAtom = Atom(name: '_MetronomeStore.themeIndex');
+
+  @override
+  int get themeIndex {
+    _$themeIndexAtom.reportRead();
+    return super.themeIndex;
+  }
+
+  @override
+  set themeIndex(int value) {
+    _$themeIndexAtom.reportWrite(value, super.themeIndex, () {
+      super.themeIndex = value;
+    });
+  }
+
   final _$_MetronomeStoreActionController =
       ActionController(name: '_MetronomeStore');
 
@@ -128,12 +143,24 @@ mixin _$MetronomeStore on _MetronomeStore, Store {
   }
 
   @override
+  void setThemeIndex(int index) {
+    final _$actionInfo = _$_MetronomeStoreActionController.startAction(
+        name: '_MetronomeStore.setThemeIndex');
+    try {
+      return super.setThemeIndex(index);
+    } finally {
+      _$_MetronomeStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 bpm: ${bpm},
 soundType: ${soundType},
 beat: ${beat},
 note: ${note}
+themeIndex: ${themeIndex}
     ''';
   }
 }

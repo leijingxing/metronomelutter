@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:metronomelutter/component/change_sound.dart';
 import 'package:metronomelutter/component/game_audio.dart';
+import 'package:metronomelutter/config/app_theme.dart';
 import 'package:metronomelutter/config/config.dart';
 import 'package:metronomelutter/store/index.dart';
 import 'package:quick_actions/quick_actions.dart';
@@ -23,14 +25,18 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   int _nowStep = -1;
   int count = 0;
   bool _isRunning = false;
   Timer? _timer;
   late final AnimationController _animationController;
+  late final AnimationController _cloudController;
+  late final AnimationController _burstController;
   late final Future<void> _audioInitFuture;
   bool _audioReady = false;
+  final List<_CloudBurst> _bursts = [];
+  final Random _random = Random();
 
   // ios 用,防止内存泄漏 todo iOS 也要三个播放器
   final GameAudio _iosAudio = GameAudio(1);
@@ -77,6 +83,14 @@ class _MyHomePageState extends State<MyHomePage>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
+    _cloudController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 16),
+    )..repeat(reverse: true);
+    _burstController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..addListener(_onBurstTick);
     _audioInitFuture = _initAudio();
     // Timer(Duration(milliseconds: 1000), () {
     //   showBeatSetting();
@@ -108,6 +122,8 @@ class _MyHomePageState extends State<MyHomePage>
     _timer?.cancel();
     super.dispose();
     _animationController.dispose();
+    _cloudController.dispose();
+    _burstController.dispose();
     _iosAudio.stop();
     _iosAudio.dispose();
     _player1.dispose();
@@ -182,11 +198,14 @@ class _MyHomePageState extends State<MyHomePage>
       _timer?.cancel();
       _animationController.reverse();
       _stopAllAudio();
+      _burstController.stop();
+      _bursts.clear();
     } else {
       await _audioInitFuture;
       if (!mounted) {
         return;
       }
+      _burstController.repeat();
       runTimer();
       _animationController.forward();
     }
@@ -199,6 +218,9 @@ class _MyHomePageState extends State<MyHomePage>
     setState(() {
       _nowStep++;
     });
+    if (_isRunning) {
+      _spawnCloudBurst();
+    }
   }
 
   void _stopAllAudio() {
@@ -262,113 +284,376 @@ class _MyHomePageState extends State<MyHomePage>
     });
   }
 
+  void _spawnCloudBurst() {
+    final int now = DateTime.now().millisecondsSinceEpoch;
+    final double x = 0.15 + _random.nextDouble() * 0.7;
+    final double y = 0.18 + _random.nextDouble() * 0.5;
+    final double radius = 60 + _random.nextDouble() * 80;
+    final double driftX = (_random.nextDouble() - 0.5) * 30;
+    final double driftY = (_random.nextDouble() - 0.5) * 20;
+    final AppTheme theme = AppThemes.all[appStore.themeIndex % AppThemes.all.length];
+    final Color color = Color.lerp(theme.primary, theme.accent, _random.nextDouble()) ??
+        theme.primary;
+    _bursts.add(_CloudBurst(
+      center: Offset(x, y),
+      radius: radius,
+      startMs: now,
+      durationMs: 900 + _random.nextInt(400),
+      driftX: driftX,
+      driftY: driftY,
+      color: color,
+    ));
+  }
+
+  void _onBurstTick() {
+    if (!mounted) {
+      return;
+    }
+    final int now = DateTime.now().millisecondsSinceEpoch;
+    _bursts.removeWhere((b) => now - b.startMs > b.durationMs);
+    if (_bursts.isNotEmpty) {
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final ColorScheme scheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final AppTheme theme = AppThemes.all[appStore.themeIndex % AppThemes.all.length];
+    final Color primary = theme.primary;
+    final Color accent = theme.accent;
+    final Color bgTop = isDark ? theme.bgTopDark : theme.bgTopLight;
+    final Color bgBottom = isDark ? theme.bgBottomDark : theme.bgBottomLight;
+
     return Scaffold(
-        body: Observer(
-      builder: (_) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            // 顶部工具栏
-            Container(
-                padding:
-                    EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.settings),
-                      color: Theme.of(context).textTheme.headlineSmall?.color ??
-                          Theme.of(context).colorScheme.onSurface,
-                      onPressed: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const Setting()),
-                        );
-                        print('setting result: $result');
-                      },
-                    )
-                  ],
-                )),
-            // Text(
-            //   '节拍器',
-            //   style: Theme.of(context).textTheme.headline3,
-            // ),
-
-            SliderRow(appStore.bpm, _setBpmHanlder),
-
-            // 小点
-            IndactorRow(_nowStep, appStore.beat),
-
-            // 底部控制区
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.music_note,
+      body: Observer(
+        builder: (_) => Stack(
+          children: [
+            // 背景层
+            AnimatedBuilder(
+              animation: _cloudController,
+              builder: (context, child) {
+                final double t = _cloudController.value;
+                final Alignment begin = Alignment.lerp(
+                      Alignment.topLeft,
+                      Alignment.topRight,
+                      t,
+                    ) ??
+                    Alignment.topLeft;
+                final Alignment end = Alignment.lerp(
+                      Alignment.bottomRight,
+                      Alignment.bottomLeft,
+                      t,
+                    ) ??
+                    Alignment.bottomRight;
+                return Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: begin,
+                      end: end,
+                      colors: [
+                        Color.lerp(bgTop, primary.withOpacity(0.06), t) ?? bgTop,
+                        Color.lerp(bgBottom, accent.withOpacity(0.06), t) ?? bgBottom,
+                      ],
+                    ),
                   ),
-                  onPressed: () async {
-                    final res = await changeSound(context);
-                    if (res != null) {
-                      appStore.setSoundType(res);
-                    }
+                );
+              },
+            ),
+            // 节拍云彩散开效果
+            Positioned.fill(
+              child: IgnorePointer(
+                child: AnimatedBuilder(
+                  animation: _burstController,
+                  builder: (context, child) {
+                    return CustomPaint(
+                      painter: _CloudBurstPainter(
+                        bursts: _bursts,
+                        nowMs: DateTime.now().millisecondsSinceEpoch,
+                      ),
+                    );
                   },
-                  color: Theme.of(context).colorScheme.secondary,
                 ),
-
-                // 开始/暂停
-                IconButton(
-                  icon: AnimatedIcon(
-                    icon: AnimatedIcons.play_pause,
-                    progress: _animationController,
-                  ),
-                  onPressed: _toggleIsRunning,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                // 拍号
-                GestureDetector(
-                  onTap: showBeatSetting,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(120),
-                    child: Container(
-                      color: Theme.of(context).colorScheme.secondary,
-                      width: 50,
-                      height: 50,
-                      child: Center(
-                        child: RichText(
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          // overflow: TextOverflow.ellipsis,
-                          textScaler: MediaQuery.textScalerOf(context),
-                          text: TextSpan(
-                            style: TextStyle(
-                                color: Colors.white, fontSize: 16.0, height: 1),
-                            children: [
-                              TextSpan(text: appStore.beat.toString()),
-                              TextSpan(text: '/'),
-                              TextSpan(text: appStore.note.toString()),
-                            ],
+              ),
+            ),
+            // 背景点缀
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 700),
+              curve: Curves.easeOutCubic,
+              top: _isRunning ? -60 : -90,
+              right: _isRunning ? -10 : -50,
+              child: _GlowOrb(color: primary.withOpacity(0.22), size: 200),
+            ),
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 700),
+              curve: Curves.easeOutCubic,
+              bottom: _isRunning ? -70 : -120,
+              left: _isRunning ? -30 : -70,
+              child: _GlowOrb(color: accent.withOpacity(0.22), size: 240),
+            ),
+            SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '节拍器',
+                            style: textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.2,
+                            ),
                           ),
                         ),
+                        IconButton(
+                          icon: const Icon(Icons.settings),
+                          color: textTheme.headlineSmall?.color ?? scheme.onSurface,
+                          onPressed: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const Setting()),
+                            );
+                            print('setting result: $result');
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  AnimatedOpacity(
+                    opacity: _isRunning ? 1 : 0.9,
+                    duration: const Duration(milliseconds: 350),
+                    curve: Curves.easeOut,
+                    child: SliderRow(appStore.bpm, _setBpmHanlder),
+                  ),
+                  const SizedBox(height: 12),
+                  IndactorRow(_nowStep, appStore.beat),
+                  const Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF1B2230).withOpacity(0.92)
+                            : Colors.white.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(isDark ? 0.25 : 0.08),
+                            blurRadius: 22,
+                            offset: const Offset(0, 12),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          _RoundIconButton(
+                            icon: Icons.music_note,
+                            color: accent,
+                            onPressed: () async {
+                              final res = await changeSound(context);
+                              if (res != null) {
+                                appStore.setSoundType(res);
+                              }
+                            },
+                          ),
+                          // 开始/暂停
+                          AnimatedBuilder(
+                            animation: _animationController,
+                            builder: (context, child) {
+                              final scale = 1.0 + (_animationController.value * 0.06);
+                              return Transform.scale(
+                                scale: scale,
+                                child: child,
+                              );
+                            },
+                            child: _RoundIconButton(
+                              icon: null,
+                              color: primary,
+                              onPressed: _toggleIsRunning,
+                              child: AnimatedIcon(
+                                icon: AnimatedIcons.play_pause,
+                                progress: _animationController,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            ),
+                          ),
+                          // 拍号
+                          GestureDetector(
+                            onTap: showBeatSetting,
+                            child: Container(
+                              width: 56,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: accent,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: accent.withOpacity(0.35),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 7),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: RichText(
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  textScaler: MediaQuery.textScalerOf(context),
+                                  text: TextSpan(
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16.0,
+                                      height: 1,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    children: [
+                                      TextSpan(text: appStore.beat.toString()),
+                                      const TextSpan(text: '/'),
+                                      TextSpan(text: appStore.note.toString()),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
-
-            // 为了让底部留出空间
-            SizedBox(
-              height: 0,
-            ),
-            // TimeSignature(appStore.beat, appStore.note),
           ],
         ),
       ),
-    ) // This trailing comma makes auto-formatting nicer for build methods.
-        );
+    );
+  }
+}
+
+class _GlowOrb extends StatelessWidget {
+  final Color color;
+  final double size;
+
+  const _GlowOrb({required this.color, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            color,
+            color.withOpacity(0.02),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RoundIconButton extends StatelessWidget {
+  final IconData? icon;
+  final Color color;
+  final VoidCallback onPressed;
+  final Widget? child;
+
+  const _RoundIconButton({
+    required this.icon,
+    required this.color,
+    required this.onPressed,
+    this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: color,
+      shape: const CircleBorder(),
+      elevation: 6,
+      shadowColor: color.withOpacity(0.4),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onPressed,
+        child: SizedBox(
+          width: 56,
+          height: 56,
+          child: Center(
+            child: child ??
+                Icon(
+                  icon,
+                  color: Colors.white,
+                  size: 26,
+                ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CloudBurst {
+  final Offset center;
+  final double radius;
+  final int startMs;
+  final int durationMs;
+  final double driftX;
+  final double driftY;
+  final Color color;
+
+  const _CloudBurst({
+    required this.center,
+    required this.radius,
+    required this.startMs,
+    required this.durationMs,
+    required this.driftX,
+    required this.driftY,
+    required this.color,
+  });
+}
+
+class _CloudBurstPainter extends CustomPainter {
+  final List<_CloudBurst> bursts;
+  final int nowMs;
+
+  _CloudBurstPainter({
+    required this.bursts,
+    required this.nowMs,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final burst in bursts) {
+      final double t = ((nowMs - burst.startMs) / burst.durationMs)
+          .clamp(0.0, 1.0);
+      final double ease = Curves.easeOutCubic.transform(t);
+      final Offset center = Offset(
+        burst.center.dx * size.width + burst.driftX * ease,
+        burst.center.dy * size.height + burst.driftY * ease,
+      );
+      final double radius = burst.radius * (0.6 + ease * 0.8);
+      final double opacity = (1 - ease) * 0.16;
+      final Paint paint = Paint()
+        ..color = burst.color.withOpacity(opacity)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, radius * 0.25);
+      canvas.drawCircle(center, radius, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CloudBurstPainter oldDelegate) {
+    return true;
   }
 }

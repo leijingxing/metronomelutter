@@ -25,6 +25,9 @@ abstract class _MetronomeStore with Store {
   @observable
   int note = Config.NOTE_DEFAULT;
 
+  @observable
+  int themeIndex = 0;
+
   @action
   void setSoundType(int payload) {
     soundType = payload;
@@ -71,5 +74,11 @@ abstract class _MetronomeStore with Store {
     }
 
     GlobalData.sp.putInt('note', note);
+  }
+
+  @action
+  void setThemeIndex(int index) {
+    themeIndex = index;
+    GlobalData.sp.putInt('themeIndex', index);
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:metronomelutter/config/app_theme.dart';
 import 'package:metronomelutter/config/config.dart';
+import 'package:metronomelutter/store/index.dart';
 import 'package:metronomelutter/utils/global_function.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
@@ -51,6 +53,11 @@ class _SliderRowState extends State<SliderRow> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final AppTheme theme = AppThemes.all[appStore.themeIndex % AppThemes.all.length];
+    final Color primary = theme.primary;
+    final Color accent = theme.accent;
+    final Color track = isDark ? theme.trackDark : theme.trackLight;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
@@ -88,22 +95,43 @@ class _SliderRowState extends State<SliderRow> {
             appearance: CircularSliderAppearance(
               // animationEnabled: false,
               size: 270,
+              startAngle: 160,
+              angleRange: 220,
+              animDurationMultiplier: 0.8,
+              customWidths: CustomSliderWidths(
+                trackWidth: 10,
+                progressBarWidth: 16,
+                shadowWidth: 20,
+                handlerSize: 8,
+              ),
               infoProperties: InfoProperties(
                 modifier: (percentage) => percentage.toInt().toString(),
                 bottomLabelText: 'BPM',
                 mainLabelStyle: TextStyle(
                   color: Theme.of(context).textTheme.headlineSmall?.color ??
                       Theme.of(context).colorScheme.onSurface,
-                  fontSize: 52,
+                  fontSize: 54,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.0,
+                ),
+                bottomLabelStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  fontSize: 14,
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               customColors: CustomSliderColors(
-                hideShadow: true,
-                progressBarColors: const [
-                  Color.fromARGB(255, 62, 164, 255),
-                  Color.fromARGB(255, 102, 204, 255),
-                  Color.fromARGB(255, 142, 244, 255),
+                trackColor: track,
+                progressBarColors: [
+                  primary,
+                  Color.lerp(primary, accent, 0.5) ?? primary,
+                  accent,
                 ],
+                shadowColor: primary,
+                shadowMaxOpacity: 0.22,
+                dotColor: Colors.white,
+                dynamicGradient: true,
               ),
             ),
             // onChangeStart: (double value) {},

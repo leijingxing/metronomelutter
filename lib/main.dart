@@ -13,6 +13,7 @@ void main() async {
   GlobalData.sp = await SpUtil.getInstance();
   initSoundType();
   initBpm();
+  initThemeIndex();
 
   runApp(const MyApp());
 }
@@ -65,5 +66,12 @@ void initBpm() {
   if (spRes != null) {
     print('get bpm $spRes');
     appStore.setBpm(spRes);
+  }
+}
+
+void initThemeIndex() {
+  final int? res = GlobalData.sp.getInt('themeIndex');
+  if (res != null) {
+    appStore.setThemeIndex(res);
   }
 }
