@@ -28,6 +28,9 @@ abstract class _MetronomeStore with Store {
   @observable
   int themeIndex = 0;
 
+  @observable
+  bool keepScreenOn = true;
+
   @action
   void setSoundType(int payload) {
     soundType = payload;
@@ -80,5 +83,11 @@ abstract class _MetronomeStore with Store {
   void setThemeIndex(int index) {
     themeIndex = index;
     GlobalData.sp.putInt('themeIndex', index);
+  }
+
+  @action
+  void setKeepScreenOn(bool value) {
+    keepScreenOn = value;
+    GlobalData.sp.putBool('keepScreenOn', value);
   }
 }

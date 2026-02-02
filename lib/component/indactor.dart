@@ -14,8 +14,9 @@ class IndactorRow extends StatelessWidget {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final AppTheme theme =
         AppThemes.all[appStore.themeIndex % AppThemes.all.length];
-    final Color primary = theme.primary;
-    final Color accent = theme.accent;
+    final Color activeColor = theme.indicatorActive;
+    final Color inactiveColor =
+        isDark ? theme.indicatorInactiveDark : theme.indicatorInactiveLight;
     final List<int> steps = List<int>.generate(stepLength, (index) => index);
     // 不满 4 个改用 Row 渲染
     if (stepLength < 4) {
@@ -37,25 +38,11 @@ class IndactorRow extends StatelessWidget {
                     height: 36.0,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      gradient: isActive
-                          ? LinearGradient(
-                              colors: [
-                                primary,
-                                accent,
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            )
-                          : null,
-                      color: isActive
-                          ? null
-                          : (isDark
-                              ? scheme.onSurface.withOpacity(0.16)
-                              : scheme.onSurface.withOpacity(0.12)),
+                      color: isActive ? activeColor : inactiveColor,
                       boxShadow: isActive
                           ? [
                               BoxShadow(
-                                color: primary.withOpacity(0.35),
+                                color: activeColor.withOpacity(0.35),
                                 blurRadius: 12,
                                 offset: const Offset(0, 6),
                               ),
@@ -96,25 +83,11 @@ class IndactorRow extends StatelessWidget {
               height: 36.0,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                gradient: isActive
-                    ? LinearGradient(
-                        colors: [
-                          primary,
-                          accent,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : null,
-                color: isActive
-                    ? null
-                    : (isDark
-                        ? scheme.onSurface.withOpacity(0.16)
-                        : scheme.onSurface.withOpacity(0.12)),
+                color: isActive ? activeColor : inactiveColor,
                 boxShadow: isActive
                     ? [
                         BoxShadow(
-                          color: primary.withOpacity(0.35),
+                          color: activeColor.withOpacity(0.35),
                           blurRadius: 12,
                           offset: const Offset(0, 6),
                         ),

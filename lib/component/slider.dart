@@ -124,9 +124,9 @@ class _SliderRowState extends State<SliderRow> {
               customColors: CustomSliderColors(
                 trackColor: track,
                 progressBarColors: [
-                  primary,
-                  Color.lerp(primary, accent, 0.5) ?? primary,
-                  accent,
+                  theme.barStart,
+                  theme.barMid,
+                  theme.barEnd,
                 ],
                 shadowColor: primary,
                 shadowMaxOpacity: 0.22,

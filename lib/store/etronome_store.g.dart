@@ -84,6 +84,21 @@ mixin _$MetronomeStore on _MetronomeStore, Store {
     });
   }
 
+  final _$keepScreenOnAtom = Atom(name: '_MetronomeStore.keepScreenOn');
+
+  @override
+  bool get keepScreenOn {
+    _$keepScreenOnAtom.reportRead();
+    return super.keepScreenOn;
+  }
+
+  @override
+  set keepScreenOn(bool value) {
+    _$keepScreenOnAtom.reportWrite(value, super.keepScreenOn, () {
+      super.keepScreenOn = value;
+    });
+  }
+
   final _$_MetronomeStoreActionController =
       ActionController(name: '_MetronomeStore');
 
@@ -154,6 +169,17 @@ mixin _$MetronomeStore on _MetronomeStore, Store {
   }
 
   @override
+  void setKeepScreenOn(bool value) {
+    final _$actionInfo = _$_MetronomeStoreActionController.startAction(
+        name: '_MetronomeStore.setKeepScreenOn');
+    try {
+      return super.setKeepScreenOn(value);
+    } finally {
+      _$_MetronomeStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 bpm: ${bpm},
@@ -161,6 +187,7 @@ soundType: ${soundType},
 beat: ${beat},
 note: ${note}
 themeIndex: ${themeIndex}
+keepScreenOn: ${keepScreenOn}
     ''';
   }
 }

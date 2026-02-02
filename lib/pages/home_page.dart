@@ -92,6 +92,9 @@ class _MyHomePageState extends State<MyHomePage>
       duration: const Duration(seconds: 2),
     )..addListener(_onBurstTick);
     _audioInitFuture = _initAudio();
+    if (!kIsWeb) {
+      WakelockPlus.toggle(enable: appStore.keepScreenOn);
+    }
     // Timer(Duration(milliseconds: 1000), () {
     //   showBeatSetting();
     // });

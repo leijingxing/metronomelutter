@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:metronomelutter/component/about_me.dart';
 import 'package:metronomelutter/component/change_sound.dart';
@@ -5,6 +6,7 @@ import 'package:metronomelutter/config/app_theme.dart';
 import 'package:metronomelutter/store/index.dart';
 import 'package:metronomelutter/utils/global_function.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class Setting extends StatelessWidget {
   const Setting({super.key});
@@ -44,6 +46,41 @@ class Setting extends StatelessWidget {
                   }
                 },
               ),
+              _buildSwitchItem(
+                context,
+                title: '屏幕常亮',
+                subtitle: '播放时保持屏幕不休眠',
+                value: appStore.keepScreenOn,
+                onChanged: (value) async {
+                  appStore.setKeepScreenOn(value);
+                  if (!kIsWeb) {
+                    await WakelockPlus.toggle(enable: value);
+                  }
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _SectionHeader(title: '常用 BPM'),
+          _SettingCard(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                child: Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: _presetBpms.map((bpm) {
+                    return ActionChip(
+                      label: Text('$bpm'),
+                      onPressed: () => appStore.setBpm(bpm),
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.12),
+                    );
+                  }).toList(),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -56,7 +93,7 @@ class Setting extends StatelessWidget {
                 leading: Icons.code,
                 trailingIcon: Icons.open_in_new,
                 onTap: () async {
-                  launchURL('https://github.com/Tyrone2333/metronomelutter');
+                  launchURL('https://github.com/leijingxing/metronomelutter');
                 },
               ),
               buildInkWellSettingItem(
@@ -102,6 +139,18 @@ class Setting extends StatelessWidget {
       ),
     );
   }
+
+  static const List<int> _presetBpms = [
+    60,
+    72,
+    80,
+    90,
+    100,
+    110,
+    120,
+    132,
+    140,
+  ];
 
   Widget buildInkWellSettingItem(
     String text,
@@ -155,6 +204,53 @@ class Setting extends StatelessWidget {
         ),
       ),
       onTap: onTap,
+    );
+  }
+
+  Widget _buildSwitchItem(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    final ColorScheme scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: scheme.primary.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(Icons.screen_lock_portrait,
+                size: 20, color: scheme.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurface.withOpacity(0.55),
+                      ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+          ),
+        ],
+      ),
     );
   }
 

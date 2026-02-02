@@ -14,6 +14,7 @@ void main() async {
   initSoundType();
   initBpm();
   initThemeIndex();
+  initKeepScreenOn();
 
   runApp(const MyApp());
 }
@@ -73,5 +74,12 @@ void initThemeIndex() {
   final int? res = GlobalData.sp.getInt('themeIndex');
   if (res != null) {
     appStore.setThemeIndex(res);
+  }
+}
+
+void initKeepScreenOn() {
+  final bool? res = GlobalData.sp.getBool('keepScreenOn');
+  if (res != null) {
+    appStore.setKeepScreenOn(res);
   }
 }
