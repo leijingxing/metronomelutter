@@ -143,15 +143,12 @@ class _MyHomePageState extends State<MyHomePage>
         context: context,
         builder: (BuildContext bc) {
           return Observer(
-            builder: (_) => Container(
-              // 2排 高度 + 分割线高度
-              height: (63 * 2 + 16).toDouble(),
-
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+            builder: (_) => SafeArea(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     SyStepper(
                       value: appStore.beat,
@@ -164,9 +161,12 @@ class _MyHomePageState extends State<MyHomePage>
                         appStore.setBeat(b);
                       },
                     ),
+                    const SizedBox(height: 14),
                     Divider(
-                        // color: Color(0xffcccccc),
-                        ),
+                      height: 1,
+                      thickness: 1,
+                    ),
+                    const SizedBox(height: 14),
                     SyStepper(
                       value: appStore.note,
                       step: 1,
