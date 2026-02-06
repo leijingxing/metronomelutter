@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:rhythm_metronome/component/change_sound.dart';
 import 'package:rhythm_metronome/component/game_audio.dart';
+import 'package:rhythm_metronome/component/recording_sheet.dart';
 import 'package:rhythm_metronome/config/app_theme.dart';
 import 'package:rhythm_metronome/config/config.dart';
 import 'package:rhythm_metronome/store/index.dart';
@@ -92,6 +93,7 @@ class _MyHomePageState extends State<MyHomePage>
       duration: const Duration(seconds: 2),
     )..addListener(_onBurstTick);
     _audioInitFuture = _initAudio();
+    recordingStore.init();
     if (!kIsWeb) {
       WakelockPlus.toggle(enable: appStore.keepScreenOn);
     }
@@ -123,7 +125,6 @@ class _MyHomePageState extends State<MyHomePage>
   @override
   void dispose() {
     _timer?.cancel();
-    super.dispose();
     _animationController.dispose();
     _cloudController.dispose();
     _burstController.dispose();
@@ -132,9 +133,11 @@ class _MyHomePageState extends State<MyHomePage>
     _player1.dispose();
     _player2.dispose();
     _player3.dispose();
+    unawaited(recordingStore.dispose());
     if (!kIsWeb) {
       WakelockPlus.disable();
     }
+    super.dispose();
   }
 
   showBeatSetting() {
@@ -319,6 +322,23 @@ class _MyHomePageState extends State<MyHomePage>
     }
   }
 
+  Future<void> _openRecordingSheet() async {
+    recordingStore.openSheet();
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      builder: (BuildContext context) {
+        return RecordingSheet(
+          store: recordingStore,
+          onRequestToggleMetronome: _toggleIsRunning,
+          isMetronomeRunning: () => _isRunning,
+        );
+      },
+    );
+    recordingStore.closeSheet();
+  }
+
   @override
   Widget build(BuildContext context) {
     final ColorScheme scheme = Theme.of(context).colorScheme;
@@ -466,6 +486,13 @@ class _MyHomePageState extends State<MyHomePage>
                                 appStore.setSoundType(res);
                               }
                             },
+                          ),
+                          _RoundIconButton(
+                            icon: Icons.mic,
+                            color: isDark
+                                ? scheme.secondaryContainer
+                                : scheme.secondary,
+                            onPressed: _openRecordingSheet,
                           ),
                           // 开始/暂停
                           AnimatedBuilder(

@@ -6,10 +6,10 @@ part of 'etronome_store.dart';
 // StoreGenerator
 // **************************************************************************
 
-// ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic
+// ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic, no_leading_underscores_for_local_identifiers
 
 mixin _$MetronomeStore on _MetronomeStore, Store {
-  final _$bpmAtom = Atom(name: '_MetronomeStore.bpm');
+  late final _$bpmAtom = Atom(name: '_MetronomeStore.bpm', context: context);
 
   @override
   int get bpm {
@@ -24,7 +24,8 @@ mixin _$MetronomeStore on _MetronomeStore, Store {
     });
   }
 
-  final _$soundTypeAtom = Atom(name: '_MetronomeStore.soundType');
+  late final _$soundTypeAtom =
+      Atom(name: '_MetronomeStore.soundType', context: context);
 
   @override
   int get soundType {
@@ -39,7 +40,7 @@ mixin _$MetronomeStore on _MetronomeStore, Store {
     });
   }
 
-  final _$beatAtom = Atom(name: '_MetronomeStore.beat');
+  late final _$beatAtom = Atom(name: '_MetronomeStore.beat', context: context);
 
   @override
   int get beat {
@@ -54,7 +55,7 @@ mixin _$MetronomeStore on _MetronomeStore, Store {
     });
   }
 
-  final _$noteAtom = Atom(name: '_MetronomeStore.note');
+  late final _$noteAtom = Atom(name: '_MetronomeStore.note', context: context);
 
   @override
   int get note {
@@ -69,7 +70,8 @@ mixin _$MetronomeStore on _MetronomeStore, Store {
     });
   }
 
-  final _$themeIndexAtom = Atom(name: '_MetronomeStore.themeIndex');
+  late final _$themeIndexAtom =
+      Atom(name: '_MetronomeStore.themeIndex', context: context);
 
   @override
   int get themeIndex {
@@ -84,7 +86,8 @@ mixin _$MetronomeStore on _MetronomeStore, Store {
     });
   }
 
-  final _$keepScreenOnAtom = Atom(name: '_MetronomeStore.keepScreenOn');
+  late final _$keepScreenOnAtom =
+      Atom(name: '_MetronomeStore.keepScreenOn', context: context);
 
   @override
   bool get keepScreenOn {
@@ -99,8 +102,8 @@ mixin _$MetronomeStore on _MetronomeStore, Store {
     });
   }
 
-  final _$_MetronomeStoreActionController =
-      ActionController(name: '_MetronomeStore');
+  late final _$_MetronomeStoreActionController =
+      ActionController(name: '_MetronomeStore', context: context);
 
   @override
   void setSoundType(int payload) {
@@ -185,10 +188,9 @@ mixin _$MetronomeStore on _MetronomeStore, Store {
 bpm: ${bpm},
 soundType: ${soundType},
 beat: ${beat},
-note: ${note}
-themeIndex: ${themeIndex}
+note: ${note},
+themeIndex: ${themeIndex},
 keepScreenOn: ${keepScreenOn}
     ''';
   }
 }
-
