@@ -1,6 +1,6 @@
 {
-    "name": "metronomelutter",
-    "short_name": "metronomelutter",
+    "name": "律动节拍",
+    "short_name": "律动节拍",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
@@ -21,3 +21,4 @@
         }
     ]
 }
+

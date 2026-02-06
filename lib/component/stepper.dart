@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:metronomelutter/config/app_theme.dart';
-import 'package:metronomelutter/store/index.dart';
+import 'package:rhythm_metronome/config/app_theme.dart';
+import 'package:rhythm_metronome/store/index.dart';
 
 enum StepperEventType { increase, decrease }
 
@@ -158,3 +158,4 @@ class _StepperButton extends StatelessWidget {
     );
   }
 }
+

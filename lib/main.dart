@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:metronomelutter/global_data.dart';
-import 'package:metronomelutter/pages/home_page.dart';
-import 'package:metronomelutter/store/index.dart';
+import 'package:rhythm_metronome/global_data.dart';
+import 'package:rhythm_metronome/pages/home_page.dart';
+import 'package:rhythm_metronome/store/index.dart';
 
 import 'utils/shared_preferences.dart';
 
@@ -83,3 +83,4 @@ void initKeepScreenOn() {
     appStore.setKeepScreenOn(res);
   }
 }
+

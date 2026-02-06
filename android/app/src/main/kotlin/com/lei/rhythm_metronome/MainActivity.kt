@@ -1,4 +1,4 @@
-package com.example.metronomelutter
+package com.lei.rhythm_metronome
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:metronomelutter/config/app_theme.dart';
-import 'package:metronomelutter/store/index.dart';
+import 'package:rhythm_metronome/config/app_theme.dart';
+import 'package:rhythm_metronome/store/index.dart';
 
 Future<int?> changeSound(BuildContext context) async {
   final AppTheme theme = AppThemes.all[appStore.themeIndex % AppThemes.all.length];
@@ -67,3 +67,4 @@ Future<int?> changeSound(BuildContext context) async {
   );
   return i;
 }
+

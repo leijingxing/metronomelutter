@@ -14,3 +14,4 @@ class Config {
   static const NOTE_MIN = 1;
   static const NOTE_MAX = 32;
 }
+

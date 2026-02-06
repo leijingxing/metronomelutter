@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:metronomelutter/main.dart';
+import 'package:rhythm_metronome/main.dart';
 
 void main() {
   testWidgets('App builds basic UI', (WidgetTester tester) async {

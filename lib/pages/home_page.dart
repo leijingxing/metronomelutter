@@ -4,11 +4,11 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:metronomelutter/component/change_sound.dart';
-import 'package:metronomelutter/component/game_audio.dart';
-import 'package:metronomelutter/config/app_theme.dart';
-import 'package:metronomelutter/config/config.dart';
-import 'package:metronomelutter/store/index.dart';
+import 'package:rhythm_metronome/component/change_sound.dart';
+import 'package:rhythm_metronome/component/game_audio.dart';
+import 'package:rhythm_metronome/config/app_theme.dart';
+import 'package:rhythm_metronome/config/config.dart';
+import 'package:rhythm_metronome/store/index.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -405,7 +405,7 @@ class _MyHomePageState extends State<MyHomePage>
                       children: [
                         Expanded(
                           child: Text(
-                            '节拍器',
+                            '律动节拍',
                             style: textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.w700,
                               letterSpacing: 1.2,
@@ -660,3 +660,4 @@ class _CloudBurstPainter extends CustomPainter {
     return true;
   }
 }
+

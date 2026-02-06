@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:metronomelutter/config/app_theme.dart';
-import 'package:metronomelutter/config/config.dart';
-import 'package:metronomelutter/store/index.dart';
-import 'package:metronomelutter/utils/global_function.dart';
+import 'package:rhythm_metronome/config/app_theme.dart';
+import 'package:rhythm_metronome/config/config.dart';
+import 'package:rhythm_metronome/store/index.dart';
+import 'package:rhythm_metronome/utils/global_function.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
 class SliderRow extends StatefulWidget {
@@ -146,3 +146,4 @@ class _SliderRowState extends State<SliderRow> {
     );
   }
 }
+

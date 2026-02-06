@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:metronomelutter/component/about_me.dart';
-import 'package:metronomelutter/component/change_sound.dart';
-import 'package:metronomelutter/config/app_theme.dart';
-import 'package:metronomelutter/store/index.dart';
-import 'package:metronomelutter/utils/global_function.dart';
+import 'package:rhythm_metronome/component/about_me.dart';
+import 'package:rhythm_metronome/component/change_sound.dart';
+import 'package:rhythm_metronome/config/app_theme.dart';
+import 'package:rhythm_metronome/store/index.dart';
+import 'package:rhythm_metronome/utils/global_function.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -327,3 +327,4 @@ class _SettingCard extends StatelessWidget {
     );
   }
 }
+
