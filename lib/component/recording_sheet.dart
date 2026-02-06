@@ -11,12 +11,16 @@ class RecordingSheet extends StatelessWidget {
   final RecordingStore store;
   final Future<void> Function() onRequestToggleMetronome;
   final bool Function() isMetronomeRunning;
+  final bool isFullscreen;
+  final VoidCallback onToggleFullscreen;
 
   const RecordingSheet({
     super.key,
     required this.store,
     required this.onRequestToggleMetronome,
     required this.isMetronomeRunning,
+    required this.isFullscreen,
+    required this.onToggleFullscreen,
   });
 
   @override
@@ -30,7 +34,7 @@ class RecordingSheet extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
         child: Observer(
           builder: (_) => Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: isFullscreen ? MainAxisSize.max : MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -42,6 +46,14 @@ class RecordingSheet extends StatelessWidget {
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
                       ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: onToggleFullscreen,
+                    icon: Icon(
+                      isFullscreen
+                          ? Icons.fullscreen_exit_rounded
+                          : Icons.fullscreen_rounded,
                     ),
                   ),
                   IconButton(
@@ -159,84 +171,93 @@ class RecordingSheet extends StatelessWidget {
                     ),
                   ),
                 ),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 260),
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: store.clips.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (BuildContext context, int index) {
-                    final RecordingClip clip = store.clips[index];
-                    return Observer(
-                      builder: (_) {
-                        final bool isActive = store.activeClipId == clip.id;
-                        return _ClipItem(
-                          clip: clip,
-                          accent: accent,
-                          isActive: isActive,
-                          isPlaying: isActive && store.isPlaying,
-                          isPaused: isActive && store.isPaused,
-                          progress: isActive ? store.playbackProgress : 0,
-                          positionMs: isActive ? store.playbackPositionMs : 0,
-                          durationMs: isActive ? store.playbackDurationMs : clip.durationMs,
-                          onPlayTap: () async {
-                            debugPrint(
-                              '[RecordingSheet] onPlayTap clipId=${clip.id} isActive=$isActive isPlaying=${store.isPlaying} isPaused=${store.isPaused}',
-                            );
-                            final String? msg = await store.playClip(clip.id);
-                            debugPrint(
-                              '[RecordingSheet] onPlayTap done clipId=${clip.id} msg=$msg activeClipId=${store.activeClipId} isPlaying=${store.isPlaying} isPaused=${store.isPaused} progress=${store.playbackProgress}',
-                            );
-                            if (msg != null) {
-                              $warn(msg);
-                            }
-                          },
-                          onPauseTap: () async {
-                            debugPrint(
-                              '[RecordingSheet] onPauseTap clipId=${clip.id} activeClipId=${store.activeClipId} isPlaying=${store.isPlaying}',
-                            );
-                            await store.pausePlay();
-                            debugPrint(
-                              '[RecordingSheet] onPauseTap done clipId=${clip.id} isPlaying=${store.isPlaying} isPaused=${store.isPaused} progress=${store.playbackProgress}',
-                            );
-                          },
-                          onResumeTap: () async {
-                            debugPrint(
-                              '[RecordingSheet] onResumeTap clipId=${clip.id} activeClipId=${store.activeClipId} isPaused=${store.isPaused}',
-                            );
-                            await store.resumePlay();
-                            debugPrint(
-                              '[RecordingSheet] onResumeTap done clipId=${clip.id} isPlaying=${store.isPlaying} isPaused=${store.isPaused} progress=${store.playbackProgress}',
-                            );
-                          },
-                          onSeek: (double value) async {
-                            debugPrint(
-                              '[RecordingSheet] onSeek clipId=${clip.id} value=$value activeClipId=${store.activeClipId} durationMs=${store.playbackDurationMs}',
-                            );
-                            await store.seekToProgress(value);
-                            debugPrint(
-                              '[RecordingSheet] onSeek done clipId=${clip.id} positionMs=${store.playbackPositionMs} progress=${store.playbackProgress}',
-                            );
-                          },
-                          onDeleteTap: () async {
-                            debugPrint(
-                              '[RecordingSheet] onDeleteTap clipId=${clip.id} activeClipId=${store.activeClipId}',
-                            );
-                            await store.deleteClip(clip.id);
-                            debugPrint(
-                              '[RecordingSheet] onDeleteTap done clipId=${clip.id} clipsCount=${store.clips.length}',
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
+              if (isFullscreen)
+                Expanded(
+                  child: _buildClipList(store, accent),
+                )
+              else
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 260),
+                  child: _buildClipList(store, accent),
                 ),
-              ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildClipList(RecordingStore store, Color accent) {
+    return ListView.separated(
+      shrinkWrap: !isFullscreen,
+      itemCount: store.clips.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (BuildContext context, int index) {
+        final RecordingClip clip = store.clips[index];
+        return Observer(
+          builder: (_) {
+            final bool isActive = store.activeClipId == clip.id;
+            return _ClipItem(
+              clip: clip,
+              accent: accent,
+              isActive: isActive,
+              isPlaying: isActive && store.isPlaying,
+              isPaused: isActive && store.isPaused,
+              progress: isActive ? store.playbackProgress : 0,
+              positionMs: isActive ? store.playbackPositionMs : 0,
+              durationMs: isActive ? store.playbackDurationMs : clip.durationMs,
+              onPlayTap: () async {
+                debugPrint(
+                  '[RecordingSheet] onPlayTap clipId=${clip.id} isActive=$isActive isPlaying=${store.isPlaying} isPaused=${store.isPaused}',
+                );
+                final String? msg = await store.playClip(clip.id);
+                debugPrint(
+                  '[RecordingSheet] onPlayTap done clipId=${clip.id} msg=$msg activeClipId=${store.activeClipId} isPlaying=${store.isPlaying} isPaused=${store.isPaused} progress=${store.playbackProgress}',
+                );
+                if (msg != null) {
+                  $warn(msg);
+                }
+              },
+              onPauseTap: () async {
+                debugPrint(
+                  '[RecordingSheet] onPauseTap clipId=${clip.id} activeClipId=${store.activeClipId} isPlaying=${store.isPlaying}',
+                );
+                await store.pausePlay();
+                debugPrint(
+                  '[RecordingSheet] onPauseTap done clipId=${clip.id} isPlaying=${store.isPlaying} isPaused=${store.isPaused} progress=${store.playbackProgress}',
+                );
+              },
+              onResumeTap: () async {
+                debugPrint(
+                  '[RecordingSheet] onResumeTap clipId=${clip.id} activeClipId=${store.activeClipId} isPaused=${store.isPaused}',
+                );
+                await store.resumePlay();
+                debugPrint(
+                  '[RecordingSheet] onResumeTap done clipId=${clip.id} isPlaying=${store.isPlaying} isPaused=${store.isPaused} progress=${store.playbackProgress}',
+                );
+              },
+              onSeek: (double value) async {
+                debugPrint(
+                  '[RecordingSheet] onSeek clipId=${clip.id} value=$value activeClipId=${store.activeClipId} durationMs=${store.playbackDurationMs}',
+                );
+                await store.seekToProgress(value);
+                debugPrint(
+                  '[RecordingSheet] onSeek done clipId=${clip.id} positionMs=${store.playbackPositionMs} progress=${store.playbackProgress}',
+                );
+              },
+              onDeleteTap: () async {
+                debugPrint(
+                  '[RecordingSheet] onDeleteTap clipId=${clip.id} activeClipId=${store.activeClipId}',
+                );
+                await store.deleteClip(clip.id);
+                debugPrint(
+                  '[RecordingSheet] onDeleteTap done clipId=${clip.id} clipsCount=${store.clips.length}',
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -275,29 +296,34 @@ class _ClipItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color bg = isDark ? const Color(0xFF1A2230) : const Color(0xFFF8FAFF);
-    return Container(
-      padding: const EdgeInsets.all(10),
+    final Color bg = isDark ? const Color(0xFF1A2230) : const Color(0xFFF7FAFF);
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
+      padding: const EdgeInsets.fromLTRB(12, 12, 10, 10),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isActive
+              ? accent.withOpacity(0.45)
+              : Theme.of(context).dividerColor.withOpacity(0.25),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.22 : 0.06),
+            blurRadius: 14,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Expanded(
-                child: Text(
-                  '${_formatDateTime(clip.createdAt)}  ·  ${_formatDuration(clip.durationMs)}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: () {
+              InkWell(
+                borderRadius: BorderRadius.circular(24),
+                onTap: () {
                   if (isPlaying) {
                     onPauseTap();
                     return;
@@ -308,14 +334,47 @@ class _ClipItem extends StatelessWidget {
                   }
                   onPlayTap();
                 },
-                icon: Icon(
-                  isPlaying
-                      ? Icons.pause_circle_filled
-                      : (isPaused ? Icons.play_circle_fill : Icons.play_circle_fill),
-                  color: accent,
+                child: Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: accent.withOpacity(0.16),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                    color: accent,
+                    size: 24,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _formatDateTime(clip.createdAt),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _formatDuration(clip.durationMs),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               IconButton(
+                visualDensity: VisualDensity.compact,
                 onPressed: onDeleteTap,
                 icon: const Icon(Icons.delete_outline),
               ),

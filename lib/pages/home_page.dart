@@ -324,7 +324,7 @@ class _MyHomePageState extends State<MyHomePage>
 
   Future<void> _openRecordingSheet() async {
     recordingStore.openSheet();
-    await showModalBottomSheet<void>(
+    final String? result = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -333,10 +333,49 @@ class _MyHomePageState extends State<MyHomePage>
           store: recordingStore,
           onRequestToggleMetronome: _toggleIsRunning,
           isMetronomeRunning: () => _isRunning,
+          isFullscreen: false,
+          onToggleFullscreen: () {
+            Navigator.pop(context, 'fullscreen');
+          },
         );
       },
     );
     recordingStore.closeSheet();
+    if (!mounted) {
+      return;
+    }
+    if (result == 'fullscreen') {
+      await _openRecordingFullscreen();
+    }
+  }
+
+  Future<void> _openRecordingFullscreen() async {
+    final String? result = await Navigator.push<String>(
+      context,
+      MaterialPageRoute<String>(
+        fullscreenDialog: true,
+        builder: (BuildContext context) {
+          return Scaffold(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            body: RecordingSheet(
+              store: recordingStore,
+              onRequestToggleMetronome: _toggleIsRunning,
+              isMetronomeRunning: () => _isRunning,
+              isFullscreen: true,
+              onToggleFullscreen: () {
+                Navigator.pop(context, 'sheet');
+              },
+            ),
+          );
+        },
+      ),
+    );
+    if (!mounted) {
+      return;
+    }
+    if (result == 'sheet') {
+      await _openRecordingSheet();
+    }
   }
 
   @override
