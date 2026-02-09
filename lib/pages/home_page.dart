@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
@@ -6,10 +7,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:rhythm_metronome/component/change_sound.dart';
 import 'package:rhythm_metronome/component/game_audio.dart';
+import 'package:rhythm_metronome/component/home_visuals.dart';
 import 'package:rhythm_metronome/component/recording_sheet.dart';
+import 'package:rhythm_metronome/component/score_overlay_card.dart';
+import 'package:rhythm_metronome/component/score_sheet_manage_sheet.dart';
 import 'package:rhythm_metronome/config/app_theme.dart';
 import 'package:rhythm_metronome/config/config.dart';
+import 'package:rhythm_metronome/model/score_sheet.dart';
 import 'package:rhythm_metronome/store/index.dart';
+import 'package:rhythm_metronome/utils/global_function.dart';
+import 'package:rhythm_metronome/utils/score_sheet_service.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -35,8 +42,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   late final AnimationController _burstController;
   late final Future<void> _audioInitFuture;
   bool _audioReady = false;
-  final List<_CloudBurst> _bursts = [];
+  final List<CloudBurst> _bursts = [];
   final Random _random = Random();
+  final ScoreSheetService _scoreSheetService = ScoreSheetService();
+  final TransformationController _scoreTransformController =
+      TransformationController();
+  List<ScoreSheet> _scoreSheets = <ScoreSheet>[];
+  String? _selectedScoreSheetId;
 
   // ios 用,防止内存泄漏 todo iOS 也要三个播放器
   final GameAudio _iosAudio = GameAudio(1);
@@ -93,6 +105,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     )..addListener(_onBurstTick);
     _audioInitFuture = _initAudio();
     recordingStore.init();
+    unawaited(_initScoreSheets());
     if (!kIsWeb) {
       WakelockPlus.toggle(enable: appStore.keepScreenOn);
     }
@@ -127,6 +140,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     _animationController.dispose();
     _cloudController.dispose();
     _burstController.dispose();
+    _scoreTransformController.dispose();
     _iosAudio.stop();
     _iosAudio.dispose();
     _player1.dispose();
@@ -302,7 +316,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     final Color color =
         Color.lerp(theme.primary, theme.accent, _random.nextDouble()) ??
             theme.primary;
-    _bursts.add(_CloudBurst(
+    _bursts.add(CloudBurst(
       center: Offset(x, y),
       radius: radius,
       startMs: now,
@@ -380,6 +394,83 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
+  ScoreSheet? get _selectedScoreSheet {
+    final String? selectedId = _selectedScoreSheetId;
+    if (selectedId == null || selectedId.isEmpty) {
+      return null;
+    }
+    for (final ScoreSheet sheet in _scoreSheets) {
+      if (sheet.id == selectedId) {
+        return sheet;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _initScoreSheets() async {
+    final List<ScoreSheet> loaded = await _scoreSheetService.loadSheets();
+    final List<ScoreSheet> valid = <ScoreSheet>[];
+    bool changed = false;
+    for (final ScoreSheet sheet in loaded) {
+      if (!kIsWeb && !await File(sheet.imagePath).exists()) {
+        changed = true;
+        continue;
+      }
+      valid.add(sheet);
+    }
+    if (changed) {
+      await _scoreSheetService.saveSheets(valid);
+    }
+    final String? savedSelectedId = _scoreSheetService.loadSelectedId();
+    String? resolvedSelectedId = savedSelectedId;
+    if (savedSelectedId != null &&
+        !valid.any((ScoreSheet e) => e.id == savedSelectedId)) {
+      resolvedSelectedId = null;
+      await _scoreSheetService.saveSelectedId(null);
+    }
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _scoreSheets = valid;
+      _selectedScoreSheetId = resolvedSelectedId;
+      _scoreTransformController.value = Matrix4.identity();
+    });
+  }
+
+  Future<void> _openScoreSheetDialog() async {
+    if (kIsWeb) {
+      $warn('Web 暂不支持谱子图片导入');
+      return;
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      builder: (BuildContext context) {
+        return ScoreSheetManageSheet(
+          service: _scoreSheetService,
+          selectedId: _selectedScoreSheetId,
+          onSelectionChanged: (String? selectedId) {
+            _selectedScoreSheetId = selectedId;
+          },
+        );
+      },
+    );
+    await _initScoreSheets();
+  }
+
+  Future<void> _clearSelectedScoreSheet() async {
+    await _scoreSheetService.saveSelectedId(null);
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _selectedScoreSheetId = null;
+      _scoreTransformController.value = Matrix4.identity();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final ColorScheme scheme = Theme.of(context).colorScheme;
@@ -437,7 +528,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   animation: _burstController,
                   builder: (context, child) {
                     return CustomPaint(
-                      painter: _CloudBurstPainter(
+                      painter: CloudBurstPainter(
                         bursts: _bursts,
                         nowMs: DateTime.now().millisecondsSinceEpoch,
                       ),
@@ -452,15 +543,14 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               curve: Curves.easeOutCubic,
               top: _isRunning ? -60 : -90,
               right: _isRunning ? -10 : -50,
-              child:
-                  _GlowOrb(color: primary.withValues(alpha: 0.22), size: 200),
+              child: GlowOrb(color: primary.withValues(alpha: 0.22), size: 200),
             ),
             AnimatedPositioned(
               duration: const Duration(milliseconds: 700),
               curve: Curves.easeOutCubic,
               bottom: _isRunning ? -70 : -120,
               left: _isRunning ? -30 : -70,
-              child: _GlowOrb(color: accent.withValues(alpha: 0.22), size: 240),
+              child: GlowOrb(color: accent.withValues(alpha: 0.22), size: 240),
             ),
             SafeArea(
               child: Column(
@@ -478,6 +568,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                               letterSpacing: 1.2,
                             ),
                           ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.library_music_outlined),
+                          color: textTheme.headlineSmall?.color ??
+                              scheme.onSurface,
+                          tooltip: '谱子',
+                          onPressed: _openScoreSheetDialog,
                         ),
                         IconButton(
                           icon: const Icon(Icons.settings),
@@ -528,7 +625,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          _RoundIconButton(
+                          RoundIconButton(
                             icon: Icons.music_note,
                             color: accent,
                             onPressed: () async {
@@ -538,7 +635,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                               }
                             },
                           ),
-                          _RoundIconButton(
+                          RoundIconButton(
                             icon: Icons.mic,
                             color: isDark
                                 ? scheme.secondaryContainer
@@ -556,7 +653,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                 child: child,
                               );
                             },
-                            child: _RoundIconButton(
+                            child: RoundIconButton(
                               icon: null,
                               color: primary,
                               onPressed: _toggleIsRunning,
@@ -615,127 +712,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _GlowOrb extends StatelessWidget {
-  final Color color;
-  final double size;
-
-  const _GlowOrb({required this.color, required this.size});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            color,
-            color.withValues(alpha: 0.02),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RoundIconButton extends StatelessWidget {
-  final IconData? icon;
-  final Color color;
-  final VoidCallback onPressed;
-  final Widget? child;
-
-  const _RoundIconButton({
-    required this.icon,
-    required this.color,
-    required this.onPressed,
-    this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: color,
-      shape: const CircleBorder(),
-      elevation: 6,
-      shadowColor: color.withValues(alpha: 0.4),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onPressed,
-        child: SizedBox(
-          width: 56,
-          height: 56,
-          child: Center(
-            child: child ??
-                Icon(
-                  icon,
-                  color: Colors.white,
-                  size: 26,
+            if (_selectedScoreSheet != null)
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 72, 16, 108),
+                  child: ScoreOverlayCard(
+                    sheet: _selectedScoreSheet!,
+                    transformController: _scoreTransformController,
+                    onClose: _clearSelectedScoreSheet,
+                  ),
                 ),
-          ),
+              ),
+          ],
         ),
       ),
     );
-  }
-}
-
-class _CloudBurst {
-  final Offset center;
-  final double radius;
-  final int startMs;
-  final int durationMs;
-  final double driftX;
-  final double driftY;
-  final Color color;
-
-  const _CloudBurst({
-    required this.center,
-    required this.radius,
-    required this.startMs,
-    required this.durationMs,
-    required this.driftX,
-    required this.driftY,
-    required this.color,
-  });
-}
-
-class _CloudBurstPainter extends CustomPainter {
-  final List<_CloudBurst> bursts;
-  final int nowMs;
-
-  _CloudBurstPainter({
-    required this.bursts,
-    required this.nowMs,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    for (final burst in bursts) {
-      final double t =
-          ((nowMs - burst.startMs) / burst.durationMs).clamp(0.0, 1.0);
-      final double ease = Curves.easeOutCubic.transform(t);
-      final Offset center = Offset(
-        burst.center.dx * size.width + burst.driftX * ease,
-        burst.center.dy * size.height + burst.driftY * ease,
-      );
-      final double radius = burst.radius * (0.6 + ease * 0.8);
-      final double opacity = (1 - ease) * 0.16;
-      final Paint paint = Paint()
-        ..color = burst.color.withValues(alpha: opacity)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, radius * 0.25);
-      canvas.drawCircle(center, radius, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _CloudBurstPainter oldDelegate) {
-    return true;
   }
 }

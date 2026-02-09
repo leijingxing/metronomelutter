@@ -27,8 +27,6 @@ abstract class _RecordingStore with Store {
   Timer? _recordTimer;
   Timer? _playbackPollTimer;
 
-  int _playingDurationMs = 1;
-
   @observable
   bool initialized = false;
 
@@ -215,8 +213,11 @@ abstract class _RecordingStore with Store {
       await _player.setReleaseMode(ReleaseMode.stop);
       await _player.play(source);
       activeClipId = clip.id;
-      _playingDurationMs = max(clip.durationMs, 1);
-      playbackDurationMs = _playingDurationMs;
+      playbackDurationMs = max(clip.durationMs, 1);
+      final Duration? actualDuration = await _player.getDuration();
+      if (actualDuration != null && actualDuration.inMilliseconds > 0) {
+        playbackDurationMs = actualDuration.inMilliseconds;
+      }
       playbackPositionMs = 0;
       playbackProgress = 0;
       isPlaying = true;
@@ -322,8 +323,9 @@ abstract class _RecordingStore with Store {
         return;
       }
       final int posMs = position.inMilliseconds;
-      playbackPositionMs = posMs.clamp(0, playbackDurationMs);
-      playbackProgress = (posMs / _playingDurationMs).clamp(0.0, 1.0);
+      final int durationMs = max(playbackDurationMs, 1);
+      playbackPositionMs = posMs.clamp(0, durationMs);
+      playbackProgress = (playbackPositionMs / durationMs).clamp(0.0, 1.0);
     });
     _completeSubscription = _player.onPlayerComplete.listen((_) {
       _stopPlaybackPoll();
@@ -386,10 +388,9 @@ abstract class _RecordingStore with Store {
       final Duration? position = await _player.getCurrentPosition();
       final Duration? duration = await _player.getDuration();
       final int posMs = (position?.inMilliseconds ?? 0).clamp(0, 1 << 31);
-      final int durMs = max(
-        duration?.inMilliseconds ?? playbackDurationMs,
-        max(playbackDurationMs, 1),
-      );
+      final int durMs = (duration?.inMilliseconds ?? playbackDurationMs) > 0
+          ? (duration?.inMilliseconds ?? playbackDurationMs)
+          : max(playbackDurationMs, 1);
       playbackDurationMs = durMs;
       playbackPositionMs = posMs.clamp(0, durMs);
       playbackProgress = (playbackPositionMs / durMs).clamp(0.0, 1.0);

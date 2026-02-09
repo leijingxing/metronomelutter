@@ -35,6 +35,7 @@ dependencies:
   package_info_plus: ^9.0.0 # Replaces package_info
   # 桌面图标长按 App Shortcuts
   quick_actions: ^1.1.0
+  image_picker: ^1.1.2
 dev_dependencies:
   flutter_test:
     sdk: flutter
