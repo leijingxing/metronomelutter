@@ -23,7 +23,7 @@ class ScoreSheetService {
         .whereType<Map>()
         .map((Map<dynamic, dynamic> e) =>
             ScoreSheet.fromJson(Map<String, dynamic>.from(e)))
-        .where((ScoreSheet e) => e.id.isNotEmpty && e.imagePath.isNotEmpty)
+        .where((ScoreSheet e) => e.id.isNotEmpty && e.imagePaths.isNotEmpty)
         .toList();
     sheets.sort(
         (ScoreSheet a, ScoreSheet b) => b.createdAt.compareTo(a.createdAt));
@@ -51,33 +51,40 @@ class ScoreSheetService {
 
   Future<ScoreSheet> addSheet({
     required String name,
-    required String sourceImagePath,
+    required List<String> sourceImagePaths,
   }) async {
     final Directory dir = await _sheetDirectory();
     if (!await dir.exists()) {
       await dir.create(recursive: true);
     }
     final String id = _uuid.v4();
-    final String normalized = sourceImagePath.replaceAll('\\', '/');
-    final String filename = normalized.split('/').last;
-    final int dotIndex = filename.lastIndexOf('.');
-    final String ext = dotIndex >= 0 ? filename.substring(dotIndex) : '';
-    final String safeExt = ext.isEmpty ? '.jpg' : ext;
-    final String separator = Platform.pathSeparator;
-    final String targetPath = '${dir.path}$separator$id$safeExt';
-    await File(sourceImagePath).copy(targetPath);
+    final List<String> copiedPaths = <String>[];
+    for (int i = 0; i < sourceImagePaths.length; i++) {
+      final String sourceImagePath = sourceImagePaths[i];
+      final String normalized = sourceImagePath.replaceAll('\\', '/');
+      final String filename = normalized.split('/').last;
+      final int dotIndex = filename.lastIndexOf('.');
+      final String ext = dotIndex >= 0 ? filename.substring(dotIndex) : '';
+      final String safeExt = ext.isEmpty ? '.jpg' : ext;
+      final String separator = Platform.pathSeparator;
+      final String targetPath = '${dir.path}$separator${id}_$i$safeExt';
+      await File(sourceImagePath).copy(targetPath);
+      copiedPaths.add(targetPath);
+    }
     return ScoreSheet(
       id: id,
       name: name,
-      imagePath: targetPath,
+      imagePaths: copiedPaths,
       createdAt: DateTime.now(),
     );
   }
 
-  Future<void> deleteSheetImage(String imagePath) async {
-    final File file = File(imagePath);
-    if (await file.exists()) {
-      await file.delete();
+  Future<void> deleteSheetImages(List<String> imagePaths) async {
+    for (final String path in imagePaths) {
+      final File file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+      }
     }
   }
 

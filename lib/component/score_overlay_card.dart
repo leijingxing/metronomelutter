@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:rhythm_metronome/model/score_sheet.dart';
 
-class ScoreOverlayCard extends StatelessWidget {
+class ScoreOverlayCard extends StatefulWidget {
   final ScoreSheet sheet;
   final TransformationController transformController;
   final Future<void> Function() onClose;
@@ -14,6 +14,36 @@ class ScoreOverlayCard extends StatelessWidget {
     required this.transformController,
     required this.onClose,
   });
+
+  @override
+  State<ScoreOverlayCard> createState() => _ScoreOverlayCardState();
+}
+
+class _ScoreOverlayCardState extends State<ScoreOverlayCard> {
+  late final PageController _pageController;
+  int _pageIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void didUpdateWidget(covariant ScoreOverlayCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.sheet.id != widget.sheet.id) {
+      _pageIndex = 0;
+      widget.transformController.value = Matrix4.identity();
+      _pageController.jumpToPage(0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,21 +73,33 @@ class ScoreOverlayCard extends StatelessWidget {
             Positioned.fill(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(10, 40, 10, 10),
-                child: InteractiveViewer(
-                  minScale: 1,
-                  maxScale: 5,
-                  transformationController: transformController,
-                  child: Center(
-                    child: Image.file(
-                      File(sheet.imagePath),
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) {
-                        return const Center(
-                          child: Text('谱子图片加载失败'),
-                        );
-                      },
-                    ),
-                  ),
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: widget.sheet.imagePaths.length,
+                  onPageChanged: (int index) {
+                    setState(() {
+                      _pageIndex = index;
+                      widget.transformController.value = Matrix4.identity();
+                    });
+                  },
+                  itemBuilder: (_, int index) {
+                    return InteractiveViewer(
+                      minScale: 1,
+                      maxScale: 5,
+                      transformationController: widget.transformController,
+                      child: Center(
+                        child: Image.file(
+                          File(widget.sheet.imagePaths[index]),
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) {
+                            return const Center(
+                              child: Text('谱子图片加载失败'),
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
@@ -78,7 +120,7 @@ class ScoreOverlayCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        sheet.name,
+                        '${widget.sheet.name}  ${_pageIndex + 1}/${widget.sheet.imagePaths.length}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -95,7 +137,7 @@ class ScoreOverlayCard extends StatelessWidget {
                     shape: const CircleBorder(),
                     child: InkWell(
                       customBorder: const CircleBorder(),
-                      onTap: onClose,
+                      onTap: widget.onClose,
                       child: const Padding(
                         padding: EdgeInsets.all(8),
                         child: Icon(

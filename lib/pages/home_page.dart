@@ -412,7 +412,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     final List<ScoreSheet> valid = <ScoreSheet>[];
     bool changed = false;
     for (final ScoreSheet sheet in loaded) {
-      if (!kIsWeb && !await File(sheet.imagePath).exists()) {
+      final bool existsAll = kIsWeb
+          ? sheet.imagePaths.isNotEmpty
+          : (sheet.imagePaths.isNotEmpty &&
+              await Future.wait(
+                sheet.imagePaths.map((String path) => File(path).exists()),
+              ).then((List<bool> values) => values.every((bool e) => e)));
+      if (!existsAll) {
         changed = true;
         continue;
       }

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:rhythm_metronome/component/score_sheet_upload_flow.dart';
 import 'package:rhythm_metronome/model/score_sheet.dart';
 import 'package:rhythm_metronome/utils/global_function.dart';
 import 'package:rhythm_metronome/utils/score_sheet_service.dart';
@@ -24,7 +24,6 @@ class ScoreSheetManageSheet extends StatefulWidget {
 }
 
 class _ScoreSheetManageSheetState extends State<ScoreSheetManageSheet> {
-  final ImagePicker _picker = ImagePicker();
   List<ScoreSheet> _sheets = <ScoreSheet>[];
   String? _selectedId;
   bool _loading = true;
@@ -42,7 +41,11 @@ class _ScoreSheetManageSheetState extends State<ScoreSheetManageSheet> {
     final List<ScoreSheet> valid = <ScoreSheet>[];
     bool changed = false;
     for (final ScoreSheet e in loaded) {
-      if (!await File(e.imagePath).exists()) {
+      final bool existsAll = e.imagePaths.isNotEmpty &&
+          await Future.wait(
+            e.imagePaths.map((String path) => File(path).exists()),
+          ).then((List<bool> values) => values.every((bool v) => v));
+      if (!existsAll) {
         changed = true;
         continue;
       }
@@ -68,12 +71,14 @@ class _ScoreSheetManageSheetState extends State<ScoreSheetManageSheet> {
     if (_saving) {
       return;
     }
-    final String? name = await _askSheetName();
-    if (name == null) {
-      return;
-    }
-    final XFile? picked = await _picker.pickImage(source: ImageSource.gallery);
-    if (picked == null) {
+    final ScoreSheetUploadResult? draft =
+        await Navigator.of(context).push<ScoreSheetUploadResult>(
+      MaterialPageRoute<ScoreSheetUploadResult>(
+        fullscreenDialog: true,
+        builder: (_) => const ScoreSheetUploadPage(),
+      ),
+    );
+    if (draft == null) {
       return;
     }
     setState(() {
@@ -81,8 +86,8 @@ class _ScoreSheetManageSheetState extends State<ScoreSheetManageSheet> {
     });
     try {
       final ScoreSheet sheet = await widget.service.addSheet(
-        name: name,
-        sourceImagePath: picked.path,
+        name: draft.name,
+        sourceImagePaths: draft.imagePaths,
       );
       final List<ScoreSheet> next = <ScoreSheet>[sheet, ..._sheets];
       await widget.service.saveSheets(next);
@@ -102,47 +107,6 @@ class _ScoreSheetManageSheetState extends State<ScoreSheetManageSheet> {
         });
       }
     }
-  }
-
-  Future<String?> _askSheetName() async {
-    String draftName = '';
-    final String? result = await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('添加谱子'),
-          content: TextField(
-            autofocus: true,
-            maxLength: 30,
-            onChanged: (String value) {
-              draftName = value;
-            },
-            decoration: const InputDecoration(
-              labelText: '谱子名称',
-              hintText: '例如：Canon in D',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('取消'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final String name = draftName.trim();
-                if (name.isEmpty) {
-                  $warn('请先填写谱子名称');
-                  return;
-                }
-                Navigator.pop(context, name);
-              },
-              child: const Text('下一步'),
-            ),
-          ],
-        );
-      },
-    );
-    return result;
   }
 
   Future<void> _selectSheet(ScoreSheet sheet) async {
@@ -182,7 +146,7 @@ class _ScoreSheetManageSheetState extends State<ScoreSheetManageSheet> {
     final List<ScoreSheet> next =
         _sheets.where((ScoreSheet e) => e.id != sheet.id).toList();
     await widget.service.saveSheets(next);
-    await widget.service.deleteSheetImage(sheet.imagePath);
+    await widget.service.deleteSheetImages(sheet.imagePaths);
     if (_selectedId == sheet.id) {
       _selectedId = null;
       await widget.service.saveSelectedId(null);
@@ -274,7 +238,7 @@ class _ScoreSheetManageSheetState extends State<ScoreSheetManageSheet> {
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(10),
                                       child: Image.file(
-                                        File(sheet.imagePath),
+                                        File(sheet.coverImagePath),
                                         width: 56,
                                         height: 56,
                                         fit: BoxFit.cover,
@@ -307,8 +271,7 @@ class _ScoreSheetManageSheetState extends State<ScoreSheetManageSheet> {
                                           ),
                                           const SizedBox(height: 3),
                                           Text(
-                                            _formatSheetDateTime(
-                                                sheet.createdAt),
+                                            '${_formatSheetDateTime(sheet.createdAt)} · ${sheet.imagePaths.length} 页',
                                             style: TextStyle(
                                               fontSize: 12,
                                               color: scheme.onSurfaceVariant,
