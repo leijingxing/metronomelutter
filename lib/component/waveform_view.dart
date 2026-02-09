@@ -77,10 +77,19 @@ class _WaveformPainter extends CustomPainter {
     final int count = peaks.length;
     final double widthPerBar = size.width / count;
     final double maxBarHeight = size.height * 0.46;
+    const double minBarHeight = 0.3;
+    const double lowAmpAttenuation = 2.4;
+    const double highAmpBoostStart = 0.78;
+    const double highAmpBoost = 1.12;
     final double playedX = size.width * progress.clamp(0.0, 1.0);
     for (int i = 0; i < count; i++) {
       final double x = (i * widthPerBar) + (widthPerBar * 0.5);
-      final double bar = max(1.5, peaks[i].clamp(0.0, 1.0) * maxBarHeight);
+      final double peak = peaks[i].clamp(0.0, 1.0);
+      double shapedPeak = pow(peak, lowAmpAttenuation).toDouble();
+      if (peak >= highAmpBoostStart) {
+        shapedPeak = (shapedPeak * highAmpBoost).clamp(0.0, 1.0);
+      }
+      final double bar = max(minBarHeight, shapedPeak * maxBarHeight);
       final Offset p1 = Offset(x, (size.height * 0.5) - bar);
       final Offset p2 = Offset(x, (size.height * 0.5) + bar);
       final Paint paint = !live && x <= playedX ? playedPaint : basePaint;
