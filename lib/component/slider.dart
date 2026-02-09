@@ -54,9 +54,9 @@ class _SliderRowState extends State<SliderRow> {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final AppTheme theme = AppThemes.all[appStore.themeIndex % AppThemes.all.length];
+    final AppTheme theme =
+        AppThemes.all[appStore.themeIndex % AppThemes.all.length];
     final Color primary = theme.primary;
-    final Color accent = theme.accent;
     final Color track = isDark ? theme.trackDark : theme.trackLight;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -115,7 +115,10 @@ class _SliderRowState extends State<SliderRow> {
                   letterSpacing: 1.0,
                 ),
                 bottomLabelStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
                   fontSize: 14,
                   letterSpacing: 1.2,
                   fontWeight: FontWeight.w600,
@@ -146,4 +149,3 @@ class _SliderRowState extends State<SliderRow> {
     );
   }
 }
-

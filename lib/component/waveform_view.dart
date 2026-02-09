@@ -65,7 +65,7 @@ class _WaveformPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
     if (peaks.isEmpty) {
       final Paint line = Paint()
-        ..color = color.withOpacity(0.35)
+        ..color = color.withValues(alpha: 0.35)
         ..strokeWidth = 1.2;
       canvas.drawLine(
         Offset(0, size.height / 2),
@@ -88,7 +88,7 @@ class _WaveformPainter extends CustomPainter {
     }
     if (!live) {
       final Paint cursor = Paint()
-        ..color = progressColor.withOpacity(0.75)
+        ..color = progressColor.withValues(alpha: 0.75)
         ..strokeWidth = 1.2;
       canvas.drawLine(
         Offset(playedX, 0),

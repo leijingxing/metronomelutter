@@ -65,7 +65,8 @@ class Setting extends StatelessWidget {
           _SettingCard(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                 child: Wrap(
                   spacing: 10,
                   runSpacing: 10,
@@ -76,7 +77,7 @@ class Setting extends StatelessWidget {
                       backgroundColor: Theme.of(context)
                           .colorScheme
                           .primary
-                          .withOpacity(0.12),
+                          .withValues(alpha: 0.12),
                     );
                   }).toList(),
                 ),
@@ -102,7 +103,8 @@ class Setting extends StatelessWidget {
                 leading: Icons.info_outline,
                 trailingText: '版本信息',
                 onTap: () async {
-                  final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+                  final PackageInfo packageInfo =
+                      await PackageInfo.fromPlatform();
 
                   final String appName = packageInfo.appName;
                   final String packageName = packageInfo.packageName;
@@ -124,14 +126,15 @@ class Setting extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: scheme.surface.withOpacity(0.6),
+              color: scheme.surface.withValues(alpha: 0.6),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: scheme.outlineVariant.withOpacity(0.4)),
+              border: Border.all(
+                  color: scheme.outlineVariant.withValues(alpha: 0.4)),
             ),
             child: Text(
               '提示：主题颜色可在此切换，音效与主题设置会自动保存。',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurface.withOpacity(0.65),
+                    color: scheme.onSurface.withValues(alpha: 0.65),
                   ),
             ),
           ),
@@ -172,7 +175,7 @@ class Setting extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: scheme.primary.withOpacity(0.12),
+                  color: scheme.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(leading, size: 20, color: scheme.primary),
@@ -188,7 +191,7 @@ class Setting extends StatelessWidget {
               Text(
                 trailingText,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurface.withOpacity(0.55),
+                      color: scheme.onSurface.withValues(alpha: 0.55),
                     ),
               ),
             if (trailingIcon != null)
@@ -197,7 +200,7 @@ class Setting extends StatelessWidget {
                 child: Icon(
                   trailingIcon,
                   size: 18,
-                  color: scheme.onSurface.withOpacity(0.55),
+                  color: scheme.onSurface.withValues(alpha: 0.55),
                 ),
               ),
           ],
@@ -223,7 +226,7 @@ class Setting extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: scheme.primary.withOpacity(0.12),
+              color: scheme.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(Icons.screen_lock_portrait,
@@ -239,7 +242,7 @@ class Setting extends StatelessWidget {
                 Text(
                   subtitle,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurface.withOpacity(0.55),
+                        color: scheme.onSurface.withValues(alpha: 0.55),
                       ),
                 ),
               ],
@@ -311,20 +314,21 @@ class _SettingCard extends StatelessWidget {
     final ColorScheme scheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: scheme.surface.withOpacity(0.9),
+        color: scheme.surface.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outlineVariant.withOpacity(0.4)),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.4)),
       ),
       child: Column(
         children: [
           for (int i = 0; i < children.length; i++) ...[
             children[i],
             if (i != children.length - 1)
-              Divider(height: 1, color: scheme.outlineVariant.withOpacity(0.4)),
+              Divider(
+                  height: 1,
+                  color: scheme.outlineVariant.withValues(alpha: 0.4)),
           ],
         ],
       ),
     );
   }
 }
-

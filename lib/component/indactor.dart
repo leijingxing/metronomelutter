@@ -10,7 +10,6 @@ class IndactorRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme scheme = Theme.of(context).colorScheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final AppTheme theme =
         AppThemes.all[appStore.themeIndex % AppThemes.all.length];
@@ -24,39 +23,35 @@ class IndactorRow extends StatelessWidget {
         height: 100,
         child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: steps
-                .asMap()
-                .entries
-                .map((entry) {
-                  final bool isActive =
-                      nowStep > -1 && (nowStep % steps.length) == entry.key;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 160),
-                    curve: Curves.easeOutCubic,
-                    margin: const EdgeInsets.symmetric(horizontal: 10),
-                    width: 36.0,
-                    height: 36.0,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: isActive ? activeColor : inactiveColor,
-                      boxShadow: isActive
-                          ? [
-                              BoxShadow(
-                                color: activeColor.withOpacity(0.35),
-                                blurRadius: 12,
-                                offset: const Offset(0, 6),
-                              ),
-                            ]
-                          : null,
-                    ),
-                    child: AnimatedScale(
-                      duration: const Duration(milliseconds: 120),
-                      scale: isActive ? 1.05 : 0.95,
-                      child: const SizedBox.shrink(),
-                    ),
-                  );
-                })
-                .toList()),
+            children: steps.asMap().entries.map((entry) {
+              final bool isActive =
+                  nowStep > -1 && (nowStep % steps.length) == entry.key;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                curve: Curves.easeOutCubic,
+                margin: const EdgeInsets.symmetric(horizontal: 10),
+                width: 36.0,
+                height: 36.0,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: isActive ? activeColor : inactiveColor,
+                  boxShadow: isActive
+                      ? [
+                          BoxShadow(
+                            color: activeColor.withValues(alpha: 0.35),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: AnimatedScale(
+                  duration: const Duration(milliseconds: 120),
+                  scale: isActive ? 1.05 : 0.95,
+                  child: const SizedBox.shrink(),
+                ),
+              );
+            }).toList()),
       );
     }
     return Container(
@@ -74,7 +69,8 @@ class IndactorRow extends StatelessWidget {
         ),
         padding: const EdgeInsets.symmetric(vertical: 0),
         itemBuilder: (BuildContext context, int index) {
-          final bool isActive = nowStep > -1 && (nowStep % steps.length) == index;
+          final bool isActive =
+              nowStep > -1 && (nowStep % steps.length) == index;
           return Center(
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 160),
@@ -87,7 +83,7 @@ class IndactorRow extends StatelessWidget {
                 boxShadow: isActive
                     ? [
                         BoxShadow(
-                          color: activeColor.withOpacity(0.35),
+                          color: activeColor.withValues(alpha: 0.35),
                           blurRadius: 12,
                           offset: const Offset(0, 6),
                         ),
@@ -106,4 +102,3 @@ class IndactorRow extends StatelessWidget {
     );
   }
 }
-

@@ -3,7 +3,8 @@ import 'package:rhythm_metronome/config/app_theme.dart';
 import 'package:rhythm_metronome/store/index.dart';
 
 Future<int?> changeSound(BuildContext context) async {
-  final AppTheme theme = AppThemes.all[appStore.themeIndex % AppThemes.all.length];
+  final AppTheme theme =
+      AppThemes.all[appStore.themeIndex % AppThemes.all.length];
   final Color primary = theme.primary;
 
   final int? i = await showModalBottomSheet<int>(
@@ -50,12 +51,15 @@ Future<int?> changeSound(BuildContext context) async {
                   return ChoiceChip(
                     label: Text(opt['label'] as String),
                     selected: false,
-                    onSelected: (_) => Navigator.pop(context, opt['value'] as int),
-                    selectedColor: primary.withOpacity(0.18),
-                    backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
-                    labelStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                    onSelected: (_) =>
+                        Navigator.pop(context, opt['value'] as int),
+                    selectedColor: primary.withValues(alpha: 0.18),
+                    backgroundColor:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    labelStyle:
+                        Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                   );
                 }).toList(),
               ),
@@ -67,4 +71,3 @@ Future<int?> changeSound(BuildContext context) async {
   );
   return i;
 }
-

@@ -26,7 +26,8 @@ class RecordingSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final AppTheme theme = AppThemes.all[appStore.themeIndex % AppThemes.all.length];
+    final AppTheme theme =
+        AppThemes.all[appStore.themeIndex % AppThemes.all.length];
     final Color accent = theme.accent;
     final Color primary = theme.primary;
     return SafeArea(
@@ -92,11 +93,12 @@ class RecordingSheet extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 decoration: BoxDecoration(
                   color: isDark
-                      ? const Color(0xFF1D2432).withOpacity(0.95)
-                      : Colors.white.withOpacity(0.92),
+                      ? const Color(0xFF1D2432).withValues(alpha: 0.95)
+                      : Colors.white.withValues(alpha: 0.92),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Column(
@@ -115,7 +117,7 @@ class RecordingSheet extends StatelessWidget {
                     WaveformView(
                       peaks: store.livePeaks.toList(growable: false),
                       live: true,
-                      color: accent.withOpacity(0.45),
+                      color: accent.withValues(alpha: 0.45),
                       progressColor: accent,
                     ),
                   ],
@@ -142,11 +144,14 @@ class RecordingSheet extends StatelessWidget {
                     }
                   },
                   style: FilledButton.styleFrom(
-                    backgroundColor: store.isRecording ? Colors.redAccent : primary,
+                    backgroundColor:
+                        store.isRecording ? Colors.redAccent : primary,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   icon: Icon(
-                    store.isRecording ? Icons.stop_circle : Icons.fiber_manual_record,
+                    store.isRecording
+                        ? Icons.stop_circle
+                        : Icons.fiber_manual_record,
                   ),
                   label: Text(store.isRecording ? '停止录音' : '开始录音'),
                 ),
@@ -305,12 +310,12 @@ class _ClipItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isActive
-              ? accent.withOpacity(0.45)
-              : Theme.of(context).dividerColor.withOpacity(0.25),
+              ? accent.withValues(alpha: 0.45)
+              : Theme.of(context).dividerColor.withValues(alpha: 0.25),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.22 : 0.06),
+            color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.06),
             blurRadius: 14,
             offset: const Offset(0, 8),
           ),
@@ -338,7 +343,7 @@ class _ClipItem extends StatelessWidget {
                   width: 38,
                   height: 38,
                   decoration: BoxDecoration(
-                    color: accent.withOpacity(0.16),
+                    color: accent.withValues(alpha: 0.16),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -384,7 +389,7 @@ class _ClipItem extends StatelessWidget {
             peaks: clip.waveformPeaks,
             live: false,
             progress: progress,
-            color: accent.withOpacity(0.32),
+            color: accent.withValues(alpha: 0.32),
             progressColor: accent,
             height: 56,
           ),
@@ -395,7 +400,8 @@ class _ClipItem extends StatelessWidget {
                 child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     trackHeight: 2.6,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                    thumbShape:
+                        const RoundSliderThumbShape(enabledThumbRadius: 6),
                   ),
                   child: Slider(
                     min: 0,

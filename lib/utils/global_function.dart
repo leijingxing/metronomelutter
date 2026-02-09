@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 // 警告框
@@ -120,8 +119,7 @@ void $loading(
   int closedTimeout = 3,
 }) {
   // 设置样式
-  EasyLoading.instance
-    ..indicatorType = EasyLoadingIndicatorType.ring;
+  EasyLoading.instance..indicatorType = EasyLoadingIndicatorType.ring;
 
   EasyLoading.show(status: title);
 
@@ -186,7 +184,9 @@ String completeUrlHttpsPrefix(String urlOrigin) {
 
   var url = urlOrigin;
 
-  url = (RegExp(r"^//").hasMatch(url) || RegExp(r"^http(s|)").hasMatch(url)) ? url : '//' + url;
+  url = (RegExp(r"^//").hasMatch(url) || RegExp(r"^http(s|)").hasMatch(url))
+      ? url
+      : '//' + url;
 
   return RegExp(r"^http(s|)").hasMatch(url) ? url : 'https:' + url;
 }
@@ -202,4 +202,3 @@ class HexColor extends Color {
 
   HexColor(final String hexColor) : super(_getColorFromHex(hexColor));
 }
-

@@ -42,8 +42,10 @@ class SyStepper extends StatelessWidget {
     final StepperChangeCallback? onChange = this.onChange;
     final void Function(StepperEventType type, int nowValue)? manualControl =
         this.manualControl;
-    final bool minusBtnDisabled = value <= this.min || value - this.step < this.min || onChange == null;
-    final bool addBtnDisabled = value >= this.max || value + this.step > this.max || onChange == null;
+    final bool minusBtnDisabled =
+        value <= this.min || value - this.step < this.min || onChange == null;
+    final bool addBtnDisabled =
+        value >= this.max || value + this.step > this.max || onChange == null;
     final Color minusColor = appTheme.accent;
     final Color plusColor = appTheme.primary;
     final Color cardColor = isDark ? const Color(0xFF1B2230) : Colors.white;
@@ -65,7 +67,7 @@ class SyStepper extends StatelessWidget {
                     }
                   : () {
                       final int newVal = value - this.step;
-                      onChange?.call(newVal);
+                      onChange(newVal);
                     },
         ),
         Container(
@@ -73,10 +75,11 @@ class SyStepper extends StatelessWidget {
           decoration: BoxDecoration(
             color: cardColor,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: scheme.outlineVariant.withOpacity(0.4)),
+            border:
+                Border.all(color: scheme.outlineVariant.withValues(alpha: 0.4)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.2 : 0.08),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.08),
                 blurRadius: 10,
                 offset: const Offset(0, 6),
               ),
@@ -111,7 +114,7 @@ class SyStepper extends StatelessWidget {
                     }
                   : () {
                       final int newVal = value + this.step;
-                      onChange?.call(newVal);
+                      onChange(newVal);
                     },
         ),
       ],
@@ -135,13 +138,14 @@ class _StepperButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ColorScheme scheme = Theme.of(context).colorScheme;
-    final Color bg = disabled ? scheme.surfaceVariant : color;
-    final Color fg = disabled ? scheme.onSurface.withOpacity(0.4) : Colors.white;
+    final Color bg = disabled ? scheme.surfaceContainerHighest : color;
+    final Color fg =
+        disabled ? scheme.onSurface.withValues(alpha: 0.4) : Colors.white;
     return Material(
       color: bg,
       shape: const CircleBorder(),
       elevation: disabled ? 0 : 6,
-      shadowColor: color.withOpacity(0.35),
+      shadowColor: color.withValues(alpha: 0.35),
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onTap,
@@ -158,4 +162,3 @@ class _StepperButton extends StatelessWidget {
     );
   }
 }
-

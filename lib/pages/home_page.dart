@@ -25,8 +25,7 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage>
-    with TickerProviderStateMixin {
+class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   int _nowStep = -1;
   int count = 0;
   bool _isRunning = false;
@@ -283,7 +282,8 @@ class _MyHomePageState extends State<MyHomePage>
   bool get _isIOS => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
   void runTimer() {
-    _timer = Timer(Duration(milliseconds: (60 / appStore.bpm * 1000).toInt()), () {
+    _timer =
+        Timer(Duration(milliseconds: (60 / appStore.bpm * 1000).toInt()), () {
       count++;
       _playAudio().then((value) => _setNowStep());
       runTimer();
@@ -297,9 +297,11 @@ class _MyHomePageState extends State<MyHomePage>
     final double radius = 60 + _random.nextDouble() * 80;
     final double driftX = (_random.nextDouble() - 0.5) * 30;
     final double driftY = (_random.nextDouble() - 0.5) * 20;
-    final AppTheme theme = AppThemes.all[appStore.themeIndex % AppThemes.all.length];
-    final Color color = Color.lerp(theme.primary, theme.accent, _random.nextDouble()) ??
-        theme.primary;
+    final AppTheme theme =
+        AppThemes.all[appStore.themeIndex % AppThemes.all.length];
+    final Color color =
+        Color.lerp(theme.primary, theme.accent, _random.nextDouble()) ??
+            theme.primary;
     _bursts.add(_CloudBurst(
       center: Offset(x, y),
       radius: radius,
@@ -383,7 +385,8 @@ class _MyHomePageState extends State<MyHomePage>
     final ColorScheme scheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final AppTheme theme = AppThemes.all[appStore.themeIndex % AppThemes.all.length];
+    final AppTheme theme =
+        AppThemes.all[appStore.themeIndex % AppThemes.all.length];
     final Color primary = theme.primary;
     final Color accent = theme.accent;
     final Color bgTop = isDark ? theme.bgTopDark : theme.bgTopLight;
@@ -416,8 +419,11 @@ class _MyHomePageState extends State<MyHomePage>
                       begin: begin,
                       end: end,
                       colors: [
-                        Color.lerp(bgTop, primary.withOpacity(0.06), t) ?? bgTop,
-                        Color.lerp(bgBottom, accent.withOpacity(0.06), t) ?? bgBottom,
+                        Color.lerp(bgTop, primary.withValues(alpha: 0.06), t) ??
+                            bgTop,
+                        Color.lerp(
+                                bgBottom, accent.withValues(alpha: 0.06), t) ??
+                            bgBottom,
                       ],
                     ),
                   ),
@@ -446,20 +452,22 @@ class _MyHomePageState extends State<MyHomePage>
               curve: Curves.easeOutCubic,
               top: _isRunning ? -60 : -90,
               right: _isRunning ? -10 : -50,
-              child: _GlowOrb(color: primary.withOpacity(0.22), size: 200),
+              child:
+                  _GlowOrb(color: primary.withValues(alpha: 0.22), size: 200),
             ),
             AnimatedPositioned(
               duration: const Duration(milliseconds: 700),
               curve: Curves.easeOutCubic,
               bottom: _isRunning ? -70 : -120,
               left: _isRunning ? -30 : -70,
-              child: _GlowOrb(color: accent.withOpacity(0.22), size: 240),
+              child: _GlowOrb(color: accent.withValues(alpha: 0.22), size: 240),
             ),
             SafeArea(
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
                       children: [
                         Expanded(
@@ -473,11 +481,13 @@ class _MyHomePageState extends State<MyHomePage>
                         ),
                         IconButton(
                           icon: const Icon(Icons.settings),
-                          color: textTheme.headlineSmall?.color ?? scheme.onSurface,
+                          color: textTheme.headlineSmall?.color ??
+                              scheme.onSurface,
                           onPressed: () async {
                             final result = await Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const Setting()),
+                              MaterialPageRoute(
+                                  builder: (context) => const Setting()),
                             );
                             print('setting result: $result');
                           },
@@ -498,15 +508,17 @@ class _MyHomePageState extends State<MyHomePage>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 18),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 14),
                       decoration: BoxDecoration(
                         color: isDark
-                            ? const Color(0xFF1B2230).withOpacity(0.92)
-                            : Colors.white.withOpacity(0.9),
+                            ? const Color(0xFF1B2230).withValues(alpha: 0.92)
+                            : Colors.white.withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(isDark ? 0.25 : 0.08),
+                            color: Colors.black
+                                .withValues(alpha: isDark ? 0.25 : 0.08),
                             blurRadius: 22,
                             offset: const Offset(0, 12),
                           ),
@@ -537,7 +549,8 @@ class _MyHomePageState extends State<MyHomePage>
                           AnimatedBuilder(
                             animation: _animationController,
                             builder: (context, child) {
-                              final scale = 1.0 + (_animationController.value * 0.06);
+                              final scale =
+                                  1.0 + (_animationController.value * 0.06);
                               return Transform.scale(
                                 scale: scale,
                                 child: child,
@@ -566,7 +579,7 @@ class _MyHomePageState extends State<MyHomePage>
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: accent.withOpacity(0.35),
+                                    color: accent.withValues(alpha: 0.35),
                                     blurRadius: 16,
                                     offset: const Offset(0, 7),
                                   ),
@@ -625,7 +638,7 @@ class _GlowOrb extends StatelessWidget {
         gradient: RadialGradient(
           colors: [
             color,
-            color.withOpacity(0.02),
+            color.withValues(alpha: 0.02),
           ],
         ),
       ),
@@ -652,7 +665,7 @@ class _RoundIconButton extends StatelessWidget {
       color: color,
       shape: const CircleBorder(),
       elevation: 6,
-      shadowColor: color.withOpacity(0.4),
+      shadowColor: color.withValues(alpha: 0.4),
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onPressed,
@@ -705,8 +718,8 @@ class _CloudBurstPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     for (final burst in bursts) {
-      final double t = ((nowMs - burst.startMs) / burst.durationMs)
-          .clamp(0.0, 1.0);
+      final double t =
+          ((nowMs - burst.startMs) / burst.durationMs).clamp(0.0, 1.0);
       final double ease = Curves.easeOutCubic.transform(t);
       final Offset center = Offset(
         burst.center.dx * size.width + burst.driftX * ease,
@@ -715,7 +728,7 @@ class _CloudBurstPainter extends CustomPainter {
       final double radius = burst.radius * (0.6 + ease * 0.8);
       final double opacity = (1 - ease) * 0.16;
       final Paint paint = Paint()
-        ..color = burst.color.withOpacity(opacity)
+        ..color = burst.color.withValues(alpha: opacity)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, radius * 0.25);
       canvas.drawCircle(center, radius, paint);
     }
@@ -726,4 +739,3 @@ class _CloudBurstPainter extends CustomPainter {
     return true;
   }
 }
-
