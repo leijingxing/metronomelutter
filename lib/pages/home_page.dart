@@ -14,6 +14,7 @@ import 'package:rhythm_metronome/component/score_sheet_manage_sheet.dart';
 import 'package:rhythm_metronome/config/app_theme.dart';
 import 'package:rhythm_metronome/config/config.dart';
 import 'package:rhythm_metronome/model/score_sheet.dart';
+import 'package:rhythm_metronome/pages/pitch_training_page.dart';
 import 'package:rhythm_metronome/store/index.dart';
 import 'package:rhythm_metronome/utils/global_function.dart';
 import 'package:rhythm_metronome/utils/score_sheet_service.dart';
@@ -394,6 +395,15 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
+  Future<void> _openPitchTrainingPage() async {
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) => const PitchTrainingPage(),
+      ),
+    );
+  }
+
   ScoreSheet? get _selectedScoreSheet {
     final String? selectedId = _selectedScoreSheetId;
     if (selectedId == null || selectedId.isEmpty) {
@@ -581,6 +591,13 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                               scheme.onSurface,
                           tooltip: '谱子',
                           onPressed: _openScoreSheetDialog,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.tune),
+                          color: textTheme.headlineSmall?.color ??
+                              scheme.onSurface,
+                          tooltip: '音准',
+                          onPressed: _openPitchTrainingPage,
                         ),
                         IconButton(
                           icon: const Icon(Icons.settings),
