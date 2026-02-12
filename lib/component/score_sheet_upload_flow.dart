@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:rhythm_metronome/utils/global_function.dart';
 
+/// 谱子上传流程的结果对象，返回名称与最终确认的图片列表。
 class ScoreSheetUploadResult {
   final String name;
   final List<String> imagePaths;
@@ -14,6 +15,7 @@ class ScoreSheetUploadResult {
   });
 }
 
+/// 谱子上传第一页：填写名称并选择图片。
 class ScoreSheetUploadPage extends StatefulWidget {
   const ScoreSheetUploadPage({super.key});
 
@@ -26,6 +28,7 @@ class _ScoreSheetUploadPageState extends State<ScoreSheetUploadPage> {
   final List<String> _selectedPaths = <String>[];
   String _name = '';
 
+  /// 下一步按钮可点击条件：名称非空且至少选择一张图片。
   bool get _canNext => _name.trim().isNotEmpty && _selectedPaths.isNotEmpty;
 
   Future<void> _pickImages() async {
@@ -58,6 +61,7 @@ class _ScoreSheetUploadPageState extends State<ScoreSheetUploadPage> {
         ),
       ),
     );
+    // 仅在确认页明确确认后才将草稿结果返回上一级管理页。
     if (confirmed == true && mounted) {
       Navigator.of(context).pop(
         ScoreSheetUploadResult(
@@ -156,6 +160,7 @@ class _ScoreSheetUploadPageState extends State<ScoreSheetUploadPage> {
   }
 }
 
+/// 谱子上传确认页：支持逐页预览并最终确认提交。
 class ScoreSheetConfirmPage extends StatefulWidget {
   final String name;
   final List<String> imagePaths;

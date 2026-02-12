@@ -6,8 +6,11 @@ import 'package:rhythm_metronome/store/index.dart';
 import 'package:rhythm_metronome/utils/global_function.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
+/// BPM 圆形滑块组件，支持拖拽与手动输入两种设置方式。
 class SliderRow extends StatefulWidget {
   final int bpm;
+
+  /// BPM 更新回调，调用方负责写入 store。
   final ValueChanged<int> setBpmHandler;
 
   const SliderRow(this.bpm, this.setBpmHandler, {super.key});
@@ -71,7 +74,7 @@ class _SliderRowState extends State<SliderRow> {
               customBody: TextField(
                 controller: _textController,
                 keyboardType: TextInputType.number,
-                // 如果你想只输入数字,需要加上这个
+                // 仅允许输入数字和小数点，避免无效字符导致解析失败。
                 inputFormatters: <TextInputFormatter>[
                   FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*')),
                 ],
@@ -80,7 +83,7 @@ class _SliderRowState extends State<SliderRow> {
                   filled: true,
                 ),
                 onSubmitted: (text) {
-                  // todo 失败了不关闭弹窗
+                  // 回车后先关闭弹窗，再走统一的范围校验逻辑。
                   Navigator.of(context).pop();
                   _handleSetBpmConfirm(text);
                 },
@@ -93,7 +96,6 @@ class _SliderRowState extends State<SliderRow> {
             max: Config.BPM_MAX.toDouble(),
             initialValue: widget.bpm.toDouble(),
             appearance: CircularSliderAppearance(
-              // animationEnabled: false,
               size: 270,
               startAngle: 160,
               angleRange: 220,
@@ -137,12 +139,7 @@ class _SliderRowState extends State<SliderRow> {
                 dynamicGradient: true,
               ),
             ),
-            // onChangeStart: (double value) {},
-            // onChangeEnd: (double value) {},
-            // onChange: (double value) {},
             onChange: _handleSliderChange,
-            // onChangeStart: _handleSliderChange,
-            // onChangeEnd: _handleSliderChange,
           ),
         ),
       ],

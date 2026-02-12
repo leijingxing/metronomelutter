@@ -7,9 +7,15 @@ import 'package:rhythm_metronome/model/score_sheet.dart';
 import 'package:rhythm_metronome/utils/global_function.dart';
 import 'package:rhythm_metronome/utils/score_sheet_service.dart';
 
+/// 谱子管理弹窗，提供选择、添加和删除谱子的入口。
 class ScoreSheetManageSheet extends StatefulWidget {
+  /// 谱子数据服务，负责持久化与文件管理。
   final ScoreSheetService service;
+
+  /// 当前已选谱子 ID，可能为空。
   final String? selectedId;
+
+  /// 选中项变化回调；传 `null` 表示取消选中。
   final ValueChanged<String?> onSelectionChanged;
 
   const ScoreSheetManageSheet({
@@ -41,6 +47,7 @@ class _ScoreSheetManageSheetState extends State<ScoreSheetManageSheet> {
     final List<ScoreSheet> valid = <ScoreSheet>[];
     bool changed = false;
     for (final ScoreSheet e in loaded) {
+      // 启动时清理失效条目：任一图片缺失则整条谱子判定为无效。
       final bool existsAll = e.imagePaths.isNotEmpty &&
           await Future.wait(
             e.imagePaths.map((String path) => File(path).exists()),
@@ -148,6 +155,7 @@ class _ScoreSheetManageSheetState extends State<ScoreSheetManageSheet> {
     await widget.service.saveSheets(next);
     await widget.service.deleteSheetImages(sheet.imagePaths);
     if (_selectedId == sheet.id) {
+      // 删除的是当前选中谱子时，需要同时清空持久化选中状态。
       _selectedId = null;
       await widget.service.saveSelectedId(null);
       widget.onSelectionChanged(null);

@@ -2,21 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:rhythm_metronome/config/app_theme.dart';
 import 'package:rhythm_metronome/store/index.dart';
 
+/// 步进器按钮事件类型。
 enum StepperEventType { increase, decrease }
 
+/// 步进值变化回调。
 typedef StepperChangeCallback(int val);
 
-// - 3 +
+/// 通用数值步进器，支持最小/最大边界与自定义步幅。
 class SyStepper extends StatelessWidget {
   final int value;
   final int min;
   final int max;
 
-  /// 步幅
+  /// 每次增减的步幅。
   final int step;
   final double iconSize;
   final double textSize;
   final StepperChangeCallback? onChange;
+
+  /// 手动控制回调；设置后由外部决定如何处理加减逻辑。
   final void Function(StepperEventType type, int nowValue)? manualControl;
 
   const SyStepper({
@@ -122,6 +126,7 @@ class SyStepper extends StatelessWidget {
   }
 }
 
+/// 步进器圆形按钮。
 class _StepperButton extends StatelessWidget {
   final IconData icon;
   final Color color;

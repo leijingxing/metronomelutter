@@ -3,9 +3,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:rhythm_metronome/model/score_sheet.dart';
 
+/// 谱子浮层卡片，支持翻页和缩放查看谱面图片。
 class ScoreOverlayCard extends StatefulWidget {
+  /// 当前正在展示的谱子。
   final ScoreSheet sheet;
+
+  /// 缩放控制器，由外部持有以便在父级同步重置状态。
   final TransformationController transformController;
+
+  /// 关闭浮层回调。
   final Future<void> Function() onClose;
 
   const ScoreOverlayCard({
@@ -33,6 +39,7 @@ class _ScoreOverlayCardState extends State<ScoreOverlayCard> {
   void didUpdateWidget(covariant ScoreOverlayCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.sheet.id != widget.sheet.id) {
+      // 切换谱子时重置页码与缩放，避免沿用上一份谱子的浏览状态。
       _pageIndex = 0;
       widget.transformController.value = Matrix4.identity();
       _pageController.jumpToPage(0);

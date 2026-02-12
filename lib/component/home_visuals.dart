@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// 发光圆球背景组件，用于主页面氛围层。
 class GlowOrb extends StatelessWidget {
   final Color color;
   final double size;
@@ -24,6 +25,7 @@ class GlowOrb extends StatelessWidget {
   }
 }
 
+/// 圆形图标按钮，支持 `icon` 或自定义 `child` 两种内容。
 class RoundIconButton extends StatelessWidget {
   final IconData? icon;
   final Color color;
@@ -65,6 +67,7 @@ class RoundIconButton extends StatelessWidget {
   }
 }
 
+/// 一次云雾扩散动画的参数模型。
 class CloudBurst {
   final Offset center;
   final double radius;
@@ -85,6 +88,7 @@ class CloudBurst {
   });
 }
 
+/// 云雾扩散特效画笔，根据时间戳插值计算每个粒子的半径和透明度。
 class CloudBurstPainter extends CustomPainter {
   final List<CloudBurst> bursts;
   final int nowMs;
@@ -97,6 +101,7 @@ class CloudBurstPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     for (final burst in bursts) {
+      // 将动画进度归一化到 [0, 1]，并套用缓出曲线得到更自然的扩散速度。
       final double t =
           ((nowMs - burst.startMs) / burst.durationMs).clamp(0.0, 1.0);
       final double ease = Curves.easeOutCubic.transform(t);

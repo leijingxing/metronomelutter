@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:rhythm_metronome/config/app_theme.dart';
 import 'package:rhythm_metronome/store/index.dart';
 
+/// 弹出音效选择底部弹窗，并返回用户选择的音效索引。
 Future<int?> changeSound(BuildContext context) async {
   final AppTheme theme =
       AppThemes.all[appStore.themeIndex % AppThemes.all.length];
@@ -23,7 +24,7 @@ Future<int?> changeSound(BuildContext context) async {
         {'label': 'beep2', 'value': 4},
         {'label': '牛铃', 'value': 5},
         {'label': '钟', 'value': 6},
-        // 高 bpm 时一些手机声音播放不完全
+        // 高 BPM 场景下部分机型短音效可能有截断，鼓点更稳定。
         {'label': '鼓', 'value': 7},
       ];
 

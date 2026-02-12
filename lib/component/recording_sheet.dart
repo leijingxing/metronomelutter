@@ -7,11 +7,21 @@ import 'package:rhythm_metronome/store/index.dart';
 import 'package:rhythm_metronome/store/recording_store.dart';
 import 'package:rhythm_metronome/utils/global_function.dart';
 
+/// 录音底部弹窗，负责录音控制、实时波形预览与历史录音播放。
 class RecordingSheet extends StatelessWidget {
+  /// 录音业务状态与操作入口。
   final RecordingStore store;
+
+  /// 请求切换节拍器状态；当录音需要跟拍时在启动录音前触发。
   final Future<void> Function() onRequestToggleMetronome;
+
+  /// 返回当前节拍器是否在运行。
   final bool Function() isMetronomeRunning;
+
+  /// 是否以全屏模式展示列表区域。
   final bool isFullscreen;
+
+  /// 切换全屏/半屏显示。
   final VoidCallback onToggleFullscreen;
 
   const RecordingSheet({
@@ -59,6 +69,7 @@ class RecordingSheet extends StatelessWidget {
                   ),
                   IconButton(
                     onPressed: () async {
+                      // 关闭面板前优先停止录音，避免后台残留录音任务。
                       if (store.isRecording) {
                         final String? msg = await store.stopRecord();
                         if (msg != null) {
@@ -128,6 +139,7 @@ class RecordingSheet extends StatelessWidget {
                 width: double.infinity,
                 child: FilledButton.icon(
                   onPressed: () async {
+                    // 主按钮在「开始录音 / 停止录音」之间切换。
                     if (store.isRecording) {
                       final String? msg = await store.stopRecord();
                       if (msg != null) {
@@ -135,6 +147,7 @@ class RecordingSheet extends StatelessWidget {
                       }
                       return;
                     }
+                    // 开启“录音时播放节拍器”后，先确保节拍器处于运行态。
                     if (store.withMetronome && !isMetronomeRunning()) {
                       await onRequestToggleMetronome();
                     }
@@ -202,6 +215,7 @@ class RecordingSheet extends StatelessWidget {
         return Observer(
           builder: (_) {
             final bool isActive = store.activeClipId == clip.id;
+            // 仅活动录音条目绑定全局播放进度，其余条目保持静态显示。
             return _ClipItem(
               clip: clip,
               accent: accent,
@@ -267,6 +281,7 @@ class RecordingSheet extends StatelessWidget {
   }
 }
 
+/// 单条录音项，包含播放控制、波形和进度拖动。
 class _ClipItem extends StatelessWidget {
   final RecordingClip clip;
   final Color accent;
@@ -329,6 +344,7 @@ class _ClipItem extends StatelessWidget {
               InkWell(
                 borderRadius: BorderRadius.circular(24),
                 onTap: () {
+                  // 单按钮复用三态：播放中=暂停，暂停中=继续，其余=开始播放。
                   if (isPlaying) {
                     onPauseTap();
                     return;

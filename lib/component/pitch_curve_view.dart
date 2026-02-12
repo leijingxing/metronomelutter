@@ -1,8 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+/// 音高偏差曲线视图，展示最近一段时间的 cents 偏移走势。
 class PitchCurveView extends StatelessWidget {
+  /// 音高偏移序列；`null` 表示该采样点无有效数据（断线）。
   final List<double?> values;
+
+  /// 纵轴范围，单位 cents，显示区间为 `[-rangeCents, rangeCents]`。
   final double rangeCents;
   final double height;
   final Color lineColor;
@@ -82,6 +86,7 @@ class _PitchCurvePainter extends CustomPainter {
     for (int i = 0; i < values.length; i++) {
       final double? value = values[i];
       if (value == null) {
+        // 空采样点用于断开路径，避免跨越静音段连线。
         if (path != null) {
           canvas.drawPath(path, linePaint);
           path = null;

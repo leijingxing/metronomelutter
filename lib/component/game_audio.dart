@@ -1,5 +1,6 @@
 import 'package:audioplayers/audioplayers.dart';
 
+/// 低延迟音效播放器，维护固定数量的播放器实例用于节拍播放。
 class GameAudio {
   final List<AudioPlayer> _players = [];
   final List<String>? files;
@@ -9,7 +10,7 @@ class GameAudio {
 
   Future<void> init() async {
     for (int i = 0; i < maxPlayers; i++) {
-      final player = AudioPlayer();
+      final AudioPlayer player = AudioPlayer();
       await player.setPlayerMode(PlayerMode.lowLatency);
       await player.setReleaseMode(ReleaseMode.stop);
       _players.add(player);
@@ -42,12 +43,12 @@ class GameAudio {
     }
   }
 
-  /// Clears all the audios in the cache
+  /// 清理缓存（audioplayers 6.x 后此处不再需要显式处理）。
   void clearAll() {
     // AudioCache moved to global cache in audioplayers 6.x; nothing to clear here.
   }
 
-  /// Disables audio related logs
+  /// 关闭日志（当前版本由包内部统一管理，此处保留兼容接口）。
   void disableLog() {
     // No-op: logging control is handled by the audioplayers package internally.
   }

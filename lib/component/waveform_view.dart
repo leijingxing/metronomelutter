@@ -2,9 +2,15 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+/// 波形可视化组件，可用于实时录音或回放进度展示。
 class WaveformView extends StatelessWidget {
+  /// 归一化峰值数据，约定范围 [0, 1]。
   final List<double> peaks;
+
+  /// 播放进度，范围 [0, 1]；仅 `live=false` 时生效。
   final double progress;
+
+  /// 是否实时模式；实时模式下不绘制进度游标。
   final bool live;
   final Color color;
   final Color progressColor;
@@ -85,6 +91,7 @@ class _WaveformPainter extends CustomPainter {
     for (int i = 0; i < count; i++) {
       final double x = (i * widthPerBar) + (widthPerBar * 0.5);
       final double peak = peaks[i].clamp(0.0, 1.0);
+      // 低幅值抑制 + 高频段轻微增强，提升视觉层次并保留重音冲击感。
       double shapedPeak = pow(peak, lowAmpAttenuation).toDouble();
       if (peak >= highAmpBoostStart) {
         shapedPeak = (shapedPeak * highAmpBoost).clamp(0.0, 1.0);
